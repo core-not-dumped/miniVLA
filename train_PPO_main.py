@@ -31,6 +31,7 @@ policy_kwargs = dict(
     features_extractor_kwargs = features_extractor_kwargs,
     optimizer_class = torch.optim.Adam,
     net_arch = [256, 256],
+    normalize_images=False,
 )
 
 model = PPO(
@@ -56,4 +57,5 @@ for epoch in range(epochs):
         callback=WandbCallbackcustom(num_cpu=num_cpu)
     )
     model.save(f"model/save_model/8x8_model_{train_learning_steps}_{(epoch+1)*train_learning_steps}")
-    wandb.finish()
+
+wandb.finish()

@@ -12,7 +12,7 @@ class MissionToArrayWrapper(gym.ObservationWrapper):
             low=0, high=self.tokenizer.vocab_size-1, shape=(max_length,), dtype=np.int32
         )
         self.observation_space.spaces['direction'] = gym.spaces.Box(
-            low=0, high=3, shape=(), dtype=np.int32
+            low=0, high=3, shape=(1,), dtype=np.int32
         )
         self.max_length = max_length
 
@@ -21,4 +21,5 @@ class MissionToArrayWrapper(gym.ObservationWrapper):
         mission_str = obs['mission']
         token_ids = self.tokenizer.encode(mission_str, truncation=True, max_length=self.max_length, padding='max_length')
         obs['mission'] = torch.tensor(token_ids, dtype=torch.long)
+        obs['direction'] = np.array([obs['direction']])
         return obs
