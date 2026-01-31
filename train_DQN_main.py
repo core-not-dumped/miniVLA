@@ -5,14 +5,15 @@ from stable_baselines3.common.env_util import make_vec_env
 from wandb.integration.sb3 import WandbCallback
 import minigrid
 
-from model.VLA_feature_extractor import *
+from model.feature_extractor import *
+from model.policy import *
 from src.observation import *
 from src.hyperparam import *
 from src.callback import *
 from src.env import *
 
 def make_custom_env():
-    env = RandomMiniGridEnv(env_ids=env_ids, render=False)
+    env = RandomCurriculumMiniGridEnv(env_ids=env_ids, render_human=False)
     env = MissionToArrayWrapper(env, tokenizer, mission_max_length)
     return env
 env = make_vec_env(make_custom_env, n_envs=num_cpu)
@@ -20,21 +21,22 @@ env = make_vec_env(make_custom_env, n_envs=num_cpu)
 features_extractor_class = VLAFeatureExtractor
 features_extractor_kwargs = dict(
     features_dim=features_dim,
-    vocab_size = tokenizer.vocab_size-1,
+    vocab_size=tokenizer.vocab_size-1,
     device=device
 )
 
+policy = MultiInputDuelingPolicy
 policy_kwargs = dict(
-    features_extractor_class = features_extractor_class,
-    features_extractor_kwargs = features_extractor_kwargs,
-    optimizer_class = torch.optim.Adam,
+    features_extractor_class=features_extractor_class,
+    features_extractor_kwargs=features_extractor_kwargs,
+    optimizer_class=torch.optim.Adam,
     normalize_images=False,
-    net_arch = [128, 128],
+    net_arch=[128, 128],
 )
 
 model = DQN(
     env=env,
-    policy="MultiInputPolicy",
+    policy=policy,
     policy_kwargs=policy_kwargs,
     learning_rate=lr,
     buffer_size=buffer_size,
@@ -42,8 +44,6 @@ model = DQN(
     batch_size=batch_size,
     gamma=gamma,
     device=device,
-    exploration_fraction=0.1,
-    exploration_final_eps=0.02,
     verbose=1,
 )
 
@@ -67,7 +67,8 @@ for epoch in range(epochs):
     model.exploration_schedule = linear_decay_exploration_scheduler
     model.learn(
         total_timesteps=train_learning_steps,
-        callback=WandbCallbackcustom(num_cpu=num_cpu)
+        callback=WandbCallbackcustom(num_cpu=num_cpu, use_PPO=False),
+        log_interval=100,
     )
     if epoch >= 1:  model.learning_starts = 0
     model.save(f"model/save_model/8x8_model_{(epoch+1)*train_learning_steps}")

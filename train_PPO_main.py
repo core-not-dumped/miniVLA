@@ -6,14 +6,14 @@ from stable_baselines3.common.env_util import make_vec_env
 from wandb.integration.sb3 import WandbCallback
 import minigrid
 
-from model.VLA_feature_extractor import *
+from model.feature_extractor import *
 from src.observation import *
 from src.hyperparam import *
 from src.callback import *
 from src.env import *
 
 def make_custom_env():
-    env = RandomMiniGridEnv(env_ids=env_ids, render=False)
+    env = RandomMiniGridEnv(env_ids=env_ids, render_human=False)
     env = MissionToArrayWrapper(env, tokenizer, mission_max_length)
     return env
 env = make_vec_env(make_custom_env, n_envs=num_cpu)
@@ -54,7 +54,7 @@ run = wandb.init(project='grid_world', name=name)
 for epoch in range(epochs):
     model.learn(
         total_timesteps=train_learning_steps,
-        callback=WandbCallbackcustom(num_cpu=num_cpu)
+        callback=WandbCallbackcustom(num_cpu=num_cpu, use_PPO=True)
     )
     model.save(f"model/save_model/8x8_model_{train_learning_steps}_{(epoch+1)*train_learning_steps}")
 
