@@ -22,8 +22,9 @@ class SimpleVLAmodel(nn.Module):
             start_channels=3,
             feat_channels=64,
             text_embed_dim=64,
-            dir_embed_dim=64,
             gru_hidden=64,
+            dir_embed_dim=64,
+            carry_embed_dim=32,
         ):
         super().__init__()
         self.frames_num = start_channels//3
@@ -52,18 +53,28 @@ class SimpleVLAmodel(nn.Module):
         self.film = FiLM(text_embed_dim, feat_channels=feat_channels)
 
         # direction embedding
-        dir_embed_dim = dir_embed_dim // self.frames_num
+        one_dir_embed_dim = dir_embed_dim // self.frames_num
         self.dir_embedding = nn.Sequential(
-            nn.Embedding(4, dir_embed_dim),
-            nn.Linear(dir_embed_dim, dir_embed_dim),
+            nn.Embedding(4, one_dir_embed_dim),
+            nn.Linear(one_dir_embed_dim, one_dir_embed_dim),
             nn.ReLU(),
-            nn.Linear(dir_embed_dim, dir_embed_dim),
+            nn.Linear(one_dir_embed_dim, one_dir_embed_dim),
+            nn.ReLU()
+        )
+        
+        # carry embedding
+        one_carry_embed_dim = carry_embed_dim // self.frames_num
+        self.carry_embedding = nn.Sequential(
+            nn.Embedding(2, one_carry_embed_dim),
+            nn.Linear(one_carry_embed_dim, one_carry_embed_dim),
+            nn.ReLU(),
+            nn.Linear(one_carry_embed_dim, one_carry_embed_dim),
             nn.ReLU()
         )
 
         # Fusion
         self.fc = nn.Sequential(
-            nn.Linear(3*3*feat_channels + dir_embed_dim, out_dim),
+            nn.Linear(3*3*feat_channels + dir_embed_dim + carry_embed_dim, out_dim),
             nn.ReLU()
         )
 
@@ -81,13 +92,17 @@ class SimpleVLAmodel(nn.Module):
             elif "bias" in name:
                 nn.init.zeros_(param)
 
-    def forward(self, image, mission_ids, direction):
+    def forward(self, image, mission_ids, direction, carry):
+        # concat vision, language
         vis_feat = self.cnn(image) # vision
         _, txt_feat = self.gru(self.text_embedding(mission_ids)) # language, (num_layers, B, hidden) -> out
-        txt_feat = txt_feat[-1]
+        txt_feat = txt_feat[-1] # last layer
         film_output = self.film(vis_feat, txt_feat).flatten(start_dim=1) # concat vision, language
+
+        # concat other features
         dir_feat = self.dir_embedding(direction).flatten(start_dim=1) # direction
-        fused = self.fc(torch.cat([dir_feat, film_output], dim=1)) # concat vision, language, direction
+        carry_feat = self.carry_embedding(carry).flatten(start_dim=1) # carry
+        fused = self.fc(torch.cat([dir_feat, carry_feat, film_output], dim=1)) # concat vision, language, direction, carry
         return fused
 
 
@@ -119,5 +134,6 @@ class VLAFeatureExtractor(BaseFeaturesExtractor):
         image[:,channels_state] /= 2  # state
         mission = observations["mission"].long()
         direction = observations["direction"].long()
+        carry = observations["carry"].long()
         if direction.ndim == 1:   direction = direction.unsqueeze(-1)
-        return self.vla(image, mission, direction)
+        return self.vla(image, mission, direction, carry)

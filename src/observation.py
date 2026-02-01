@@ -17,6 +17,9 @@ class MissionToArrayWrapper(gym.ObservationWrapper):
         self.observation_space.spaces['direction'] = gym.spaces.Box(
             low=0, high=3, shape=(channels//3,), dtype=np.int32
         )
+        self.observation_space.spaces['carry'] = gym.spaces.Box(
+            low=0, high=1, shape=(channels//3,), dtype=np.int32
+        )
         self.max_length = max_length
 
     def observation(self, obs):
@@ -25,5 +28,6 @@ class MissionToArrayWrapper(gym.ObservationWrapper):
         token_ids = self.tokenizer.encode(mission_str, truncation=True, max_length=self.max_length, padding='max_length')
         obs['mission'] = torch.tensor(token_ids, dtype=torch.long)
         obs['direction'] = np.array([obs['direction']])
+        obs['carry'] = np.array([obs['carry']])
         obs['image'] = np.transpose(obs['image'], (2, 0, 1))
         return obs

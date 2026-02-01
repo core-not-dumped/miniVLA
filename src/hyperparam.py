@@ -21,16 +21,16 @@ env_ids = [
 
 lr = 3e-4
 batch_size = 256
-gamma = 0.97
+gamma = 0.96
 
 # DQN
 buffer_size = 300000
 learning_starts = 50000
 exploration_mid_iter = 4
-exploration_final_iter = 6
+exploration_final_iter = 8
 exploration_initial_eps = 1.0
 exploration_mid_eps = 0.25
-exploration_final_eps = 0.1
+exploration_final_eps = 0.05
 
 # PPO
 n_steps = 128
@@ -39,12 +39,13 @@ gae_lambda = 0.95
 
 linear_decay_lr = True
 epochs = 20
-test_learning_steps = 20000000
+test_learning_steps = 10000000
 train_learning_steps = 1000000
 mission_max_length = 24
 features_dim = 512
 max_len = 100
-frame_num = 4
+DQN_frame_num = 4
+recurrent_frame_num = 1
 
 tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
 

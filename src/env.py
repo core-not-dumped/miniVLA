@@ -87,6 +87,7 @@ class RandomCurriculumMiniGridEnv(gym.Env):
     def _get_frame_obs(self, obs):
         obs['image'] = np.concatenate(self.image, axis=2)
         obs['direction'] = np.array(self.direction)
+        obs['carry'] = np.array(self.carry)
         return obs
 
     def reset(self, **kwargs):
@@ -95,12 +96,14 @@ class RandomCurriculumMiniGridEnv(gym.Env):
         obs, info = self.env.reset(**kwargs)
         self.image = deque([obs['image']] * self.frame_num, maxlen=self.frame_num)
         self.direction = deque([obs['direction']] * self.frame_num, maxlen=self.frame_num)
+        self.carry = deque([0] * self.frame_num, maxlen=self.frame_num)
         return self._get_frame_obs(obs), info
 
     def step(self, action):
         obs, reward, terminated, truncated, info = self.env.step(action)
         self.image.append(obs['image'])
         self.direction.append(obs['direction'])
+        self.carry.append(1 if self.env.unwrapped.carrying else 0)
         if terminated or truncated:
             self.S[self.env_idx].append(reward)
             self.C[self.env_idx] = self.global_episode
@@ -115,10 +118,10 @@ class RandomMiniGridEnv(gym.Env):
         super().__init__()
         self.env_ids = env_ids
         self.render_human = render_human
+        self.max_len = max_len
         self._make_new_env()
         self.observation_space = self.env.observation_space
         self.action_space = self.env.action_space
-        self.max_len = max_len
         self.frame_num = frame_num
 
     def _make_new_env(self):
@@ -127,19 +130,25 @@ class RandomMiniGridEnv(gym.Env):
         else:                   env = gym.make(self.env_id, max_episode_steps=self.max_len)
         self.env = env
 
-    def _get_frame_obs(self):
-        return np.concatenate(list(self.image), axis=2)
-
+    def _get_frame_obs(self, obs):
+        obs['image'] = np.concatenate(self.image, axis=2)
+        obs['direction'] = np.array(self.direction)
+        obs['carry'] = np.array(self.carry)
+        return obs
+    
     def reset(self, **kwargs):
         self._make_new_env()
         obs, info = self.env.reset(**kwargs)
         self.image = deque([obs['image']] * self.frame_num, maxlen=self.frame_num)
+        self.direction = deque([obs['direction']] * self.frame_num, maxlen=self.frame_num)
+        self.carry = deque([0] * self.frame_num, maxlen=self.frame_num)
         return self._get_frame_obs(obs), info
 
     def step(self, action):
         obs, reward, terminated, truncated, info = self.env.step(action)
-        print(self.env.unwrapped.carrying)
         self.image.append(obs['image'])
+        self.direction.append(obs['direction'])
+        self.carry.append(1 if self.env.unwrapped.carrying else 0)
         return self._get_frame_obs(obs), reward, terminated, truncated, info
 
     def render(self, mode='human'):

@@ -2,7 +2,6 @@ import wandb
 import gymnasium as gym
 from stable_baselines3 import DQN
 from stable_baselines3.common.env_util import make_vec_env
-from wandb.integration.sb3 import WandbCallback
 import minigrid
 
 from model.feature_extractor import *
@@ -13,8 +12,8 @@ from src.callback import *
 from src.env import *
 
 def make_custom_env():
-    env = RandomCurriculumMiniGridEnv(env_ids=env_ids, max_len=max_len, frame_num=frame_num, render_human=False)
-    env = MissionToArrayWrapper(env, tokenizer, mission_max_length, frame_num*3)
+    env = RandomCurriculumMiniGridEnv(env_ids=env_ids, max_len=max_len, frame_num=DQN_frame_num, render_human=False)
+    env = MissionToArrayWrapper(env, tokenizer, mission_max_length, DQN_frame_num*3)
     return env
 env = make_vec_env(make_custom_env, n_envs=num_cpu)
 
@@ -22,7 +21,7 @@ features_extractor_class = VLAFeatureExtractor
 features_extractor_kwargs = dict(
     features_dim=features_dim,
     vocab_size=tokenizer.vocab_size-1,
-    start_channels=frame_num*3,
+    start_channels=DQN_frame_num*3,
     device=device
 )
 
@@ -77,6 +76,6 @@ for epoch in range(epochs):
         log_interval=100,
     )
     if epoch >= 1:  model.learning_starts = 0
-    model.save(f"model/save_model/8x8_model_{(epoch+1)*train_learning_steps}")
+    model.save(f"model/save_model/8x8_model_DQN_{(epoch+1)*train_learning_steps}")
 
 wandb.finish()
