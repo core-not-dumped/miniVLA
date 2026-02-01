@@ -135,6 +135,5 @@ class VLAFeatureExtractor(BaseFeaturesExtractor):
         carry = observations["carry"]
         carry[:,0] /= 10
         carry[:,1] /= 5
-        print(carry)
         if direction.ndim == 1:   direction = direction.unsqueeze(-1)
         return self.vla(image, mission, direction, carry)

@@ -23,7 +23,7 @@ while True:
     epi_reward = 0
     done = False
     while not done:
-        action, _ = model.predict(obs, deterministic=False)
+        action, _ = model.predict(obs, deterministic=True)
         obs, reward, terminated, truncated, info = env.step(action[0])
         done = terminated or truncated
         total_reward += reward

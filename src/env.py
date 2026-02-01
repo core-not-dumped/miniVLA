@@ -26,7 +26,7 @@ class NStepReturnWrapper(gym.Wrapper):
 
     
 class RandomCurriculumMiniGridEnv(gym.Env):
-    def __init__(self, env_ids, max_len=100, frame_num=4, rho=0.2, render_human=True):
+    def __init__(self, env_ids, max_len=100, frame_num=4, rho=0.3, render_human=True):
         super().__init__()
         self.env_ids = env_ids
         self.n_envs = len(env_ids)
@@ -50,15 +50,22 @@ class RandomCurriculumMiniGridEnv(gym.Env):
         if len(unseen) == 0:    return None
         li = np.random.choice(unseen)
         self.L_seen.append(li)
-        self.S.append(deque([0.0], maxlen=1000))
+        self.S.append(deque([0.0], maxlen=200))
         self.C.append(0)
         return li
 
     def _sample_replay_level(self):
+        if self.global_episode < 1000:  return np.random.choice(self.L_seen)
+
         # PS(l|S): score 기반 낮은 점수
-        S_arr = np.array([sum(s) for s in self.S])
-        difficulty = 1.0 - (S_arr / (S_arr.max() + 1e-8))  # 점수 낮으면 어렵다고 판단
-        Ps = difficulty / difficulty.sum()
+        s_arr = np.array([np.mean(s) for s in self.S])
+        Goldilocks = 1.0 - np.abs(2 * s_arr - 1.0)
+        sorted_indices = np.argsort(-Goldilocks)
+        ranks = np.empty_like(sorted_indices)
+        ranks[sorted_indices] = np.arange(1, len(Goldilocks)+1)
+        h = 1.0 / ranks
+        Ps = h ** 0.1 # beta
+        Ps /= Ps.sum()
 
         # PC(l|C, c): 최근 방문한 레벨은 적게 replay
         C_arr = np.array(self.C)
@@ -107,8 +114,9 @@ class RandomCurriculumMiniGridEnv(gym.Env):
         carrying = self.env.unwrapped.carrying
         self.carry = [OBJECT_TO_IDX[carrying.type], COLOR_TO_IDX[carrying.color]] if carrying else [0, 0]
         if terminated or truncated:
-            self.S[self.env_idx].append(reward)
+            self.S[self.env_idx].append(1 if reward > 0.3 else 0)
             self.C[self.env_idx] = self.global_episode
+        if reward < 0:  reward = 0
         return self._get_frame_obs(obs), reward, terminated, truncated, info
 
     def render(self, mode='human'):

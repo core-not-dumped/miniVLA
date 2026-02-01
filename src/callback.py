@@ -2,7 +2,7 @@ import wandb
 from stable_baselines3.common.callbacks import BaseCallback
 from collections import deque
 
-episode_reward_mean_num = 30000
+episode_reward_mean_num = 20000
 recent_rewards = deque(maxlen=episode_reward_mean_num)  # Track the rewards of the last 30 episodes
 
 

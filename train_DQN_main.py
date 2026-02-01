@@ -25,29 +25,33 @@ features_extractor_kwargs = dict(
     device=device
 )
 
-policy = MultiInputDuelingPolicy
-policy_kwargs = dict(
-    features_extractor_class=features_extractor_class,
-    features_extractor_kwargs=features_extractor_kwargs,
-    optimizer_class=torch.optim.Adam,
-    normalize_images=False,
-    net_arch=[features_dim//2, features_dim//2],
-)
+if retrain:
+    model = DQN.load(f"model/save_model/8x8_model_DQN_{retrain_learning_steps}_{level-1}.zip", env=env, device='cuda')  # 또는 'cpu'
+    model.replay_buffer.reset()
+else:
+    policy = MultiInputDuelingPolicy
+    policy_kwargs = dict(
+        features_extractor_class=features_extractor_class,
+        features_extractor_kwargs=features_extractor_kwargs,
+        optimizer_class=torch.optim.Adam,
+        normalize_images=False,
+        net_arch=[features_dim//2, features_dim//2],
+    )
 
-model = DQN(
-    env=env,
-    policy=policy,
-    policy_kwargs=policy_kwargs,
-    learning_rate=lr,
-    buffer_size=buffer_size,
-    learning_starts=learning_starts,
-    batch_size=batch_size,
-    gamma=gamma,
-    device=device,
-    verbose=1,
-)
+    model = DQN(
+        env=env,
+        policy=policy,
+        policy_kwargs=policy_kwargs,
+        learning_rate=lr,
+        buffer_size=buffer_size,
+        learning_starts=learning_starts,
+        batch_size=batch_size,
+        gamma=gamma,
+        device=device,
+        verbose=1,
+    )
 
-name = f'DQN_{lr}_{batch_size}_{gamma}_{features_dim}'
+name = f'DQN_{lr}_{batch_size}_{gamma}_{features_dim}_{level}'
 run = wandb.init(project='grid_world', name=name)
 
 for epoch in range(epochs):
@@ -76,6 +80,10 @@ for epoch in range(epochs):
         log_interval=100,
     )
     if epoch >= 1:  model.learning_starts = 0
-    model.save(f"model/save_model/8x8_model_DQN_{(epoch+1)*train_learning_steps}")
+
+    if retrain:
+        model.save(f"model/save_model/8x8_model_DQN_{(epoch+1)*train_learning_steps+retrain_learning_steps}_{level}")
+    else:
+        model.save(f"model/save_model/8x8_model_DQN_{(epoch+1)*train_learning_steps}_{level}")
 
 wandb.finish()

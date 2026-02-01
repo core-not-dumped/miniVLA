@@ -48,7 +48,7 @@ model = RecurrentPPO(
     verbose=1,
 )
 
-name = f'PPO_{lr}_{batch_size}_{gamma}_{features_dim}'
+name = f'PPO_{lr}_{batch_size}_{gamma}_{features_dim}_{level}'
 run = wandb.init(project='grid_world', name=name)
 
 for epoch in range(epochs):

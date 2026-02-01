@@ -1,26 +1,47 @@
-# bs 128
-# bs 256 cur
-
 import torch
 from transformers import AutoTokenizer
 
-env_ids = [
-    "MiniGrid-DoorKey-8x8-v0",
-    "MiniGrid-Fetch-8x8-N3-v0",
-    "MiniGrid-GoToDoor-8x8-v0",
-    "MiniGrid-PutNear-8x8-N3-v0",
-    "MiniGrid-RedBlueDoors-8x8-v0",
-]
+# DQN 학습시
+# level, lr, batch_size, gamma, retrain 다시보기
 
+level = 0
 env_ids = [
-    "MiniGrid-Fetch-8x8-N3-v0",
-    "MiniGrid-PutNear-8x8-N3-v0",
-    "MiniGrid-GoToDoor-8x8-v0",
-]
+    [
+        "MiniGrid-LavaGapS7-v0",
+        "MiniGrid-GoToObject-8x8-N2-v0",
+        "MiniGrid-GoToDoor-8x8-v0",
+        "MiniGrid-Fetch-8x8-N3-v0",
+    ],
+    [
+        "MiniGrid-LavaGapS7-v0",
+        "MiniGrid-GoToObject-8x8-N2-v0",
+        "MiniGrid-GoToDoor-8x8-v0",
+        "MiniGrid-Fetch-8x8-N3-v0",
 
-lr = 3e-4
+        "MiniGrid-PutNear-8x8-N3-v0",
+        "MiniGrid-RedBlueDoors-8x8-v0",
+        "MiniGrid-Dynamic-Obstacles-8x8-v0",
+    ],
+    [
+        "MiniGrid-LavaGapS7-v0",
+        "MiniGrid-GoToObject-8x8-N2-v0",
+        "MiniGrid-GoToDoor-8x8-v0",
+        "MiniGrid-Fetch-8x8-N3-v0",
+        "MiniGrid-PutNear-8x8-N3-v0",
+        "MiniGrid-RedBlueDoors-8x8-v0",
+        "MiniGrid-Dynamic-Obstacles-8x8-v0",
+
+        "MiniGrid-DoorKey-8x8-v0",
+        "MiniGrid-Unlock-v0",
+        "MiniGrid-UnlockPickup-v0",
+    ],
+][level]
+
+retrain = True
+
+lr = 5e-4
 batch_size = 256
-gamma = 0.97
+gamma = 0.96
 
 # DQN
 buffer_size = 300000
@@ -38,8 +59,9 @@ gae_lambda = 0.95
 
 linear_decay_lr = True
 epochs = 20
-test_learning_steps = 10000000
+test_learning_steps = 20000000
 train_learning_steps = 1000000
+retrain_learning_steps = 20000000
 mission_max_length = 24
 features_dim = 512
 max_len = 100
