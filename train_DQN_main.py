@@ -13,8 +13,8 @@ from src.callback import *
 from src.env import *
 
 def make_custom_env():
-    env = RandomCurriculumMiniGridEnv(env_ids=env_ids, render_human=False)
-    env = MissionToArrayWrapper(env, tokenizer, mission_max_length)
+    env = RandomCurriculumMiniGridEnv(env_ids=env_ids, max_len=max_len, frame_num=frame_num, render_human=False)
+    env = MissionToArrayWrapper(env, tokenizer, mission_max_length, frame_num*3)
     return env
 env = make_vec_env(make_custom_env, n_envs=num_cpu)
 
@@ -22,6 +22,7 @@ features_extractor_class = VLAFeatureExtractor
 features_extractor_kwargs = dict(
     features_dim=features_dim,
     vocab_size=tokenizer.vocab_size-1,
+    start_channels=frame_num*3,
     device=device
 )
 
@@ -31,7 +32,7 @@ policy_kwargs = dict(
     features_extractor_kwargs=features_extractor_kwargs,
     optimizer_class=torch.optim.Adam,
     normalize_images=False,
-    net_arch=[128, 128],
+    net_arch=[features_dim//2, features_dim//2],
 )
 
 model = DQN(
@@ -47,10 +48,15 @@ model = DQN(
     verbose=1,
 )
 
-name = 'grid_world'
+name = f'DQN_{lr}_{batch_size}_{gamma}_{features_dim}'
 run = wandb.init(project='grid_world', name=name)
 
 for epoch in range(epochs):
+    if linear_decay_lr:
+        def linear_decay_scheduler(progress_remaining):
+            pres_lr = lr * (epochs - epoch - (1 - progress_remaining)) / epochs
+            return pres_lr
+        model.lr_schedule = linear_decay_scheduler
     if epoch < exploration_mid_iter:
         def linear_decay_exploration_scheduler(progress_remaining):
             # mid_iter동안 1->0으로 감

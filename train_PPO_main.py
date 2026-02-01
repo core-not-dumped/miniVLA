@@ -13,8 +13,8 @@ from src.callback import *
 from src.env import *
 
 def make_custom_env():
-    env = RandomMiniGridEnv(env_ids=env_ids, render_human=False)
-    env = MissionToArrayWrapper(env, tokenizer, mission_max_length)
+    env = RandomCurriculumMiniGridEnv(env_ids=env_ids, max_len=max_len, frame_num=frame_num, render_human=False)
+    env = MissionToArrayWrapper(env, tokenizer, mission_max_length, frame_num*3)
     return env
 env = make_vec_env(make_custom_env, n_envs=num_cpu)
 
@@ -22,6 +22,7 @@ features_extractor_class = VLAFeatureExtractor
 features_extractor_kwargs = dict(
     features_dim=features_dim,
     vocab_size = tokenizer.vocab_size-1,
+    start_channels=frame_num*3,
     device=device
 )
 
@@ -48,7 +49,7 @@ model = PPO(
     verbose=1,
 )
 
-name = 'grid_world'
+name = f'PPO_{lr}_{batch_size}_{gamma}_{features_dim}'
 run = wandb.init(project='grid_world', name=name)
 
 for epoch in range(epochs):
