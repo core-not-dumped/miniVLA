@@ -1,6 +1,7 @@
 import gymnasium as gym
 import random
 import numpy as np
+from gym_minigrid.minigrid import OBJECT_TO_IDX, COLOR_TO_IDX
 
 from collections import deque
 
@@ -96,14 +97,15 @@ class RandomCurriculumMiniGridEnv(gym.Env):
         obs, info = self.env.reset(**kwargs)
         self.image = deque([obs['image']] * self.frame_num, maxlen=self.frame_num)
         self.direction = deque([obs['direction']] * self.frame_num, maxlen=self.frame_num)
-        self.carry = deque([0] * self.frame_num, maxlen=self.frame_num)
+        self.carry = [0, 0]
         return self._get_frame_obs(obs), info
 
     def step(self, action):
         obs, reward, terminated, truncated, info = self.env.step(action)
         self.image.append(obs['image'])
         self.direction.append(obs['direction'])
-        self.carry.append(1 if self.env.unwrapped.carrying else 0)
+        carrying = self.env.unwrapped.carrying
+        self.carry = [OBJECT_TO_IDX[carrying.type], COLOR_TO_IDX[carrying.color]] if carrying else [0, 0]
         if terminated or truncated:
             self.S[self.env_idx].append(reward)
             self.C[self.env_idx] = self.global_episode
@@ -141,14 +143,15 @@ class RandomMiniGridEnv(gym.Env):
         obs, info = self.env.reset(**kwargs)
         self.image = deque([obs['image']] * self.frame_num, maxlen=self.frame_num)
         self.direction = deque([obs['direction']] * self.frame_num, maxlen=self.frame_num)
-        self.carry = deque([0] * self.frame_num, maxlen=self.frame_num)
+        self.carry = [0, 0]
         return self._get_frame_obs(obs), info
 
     def step(self, action):
         obs, reward, terminated, truncated, info = self.env.step(action)
         self.image.append(obs['image'])
         self.direction.append(obs['direction'])
-        self.carry.append(1 if self.env.unwrapped.carrying else 0)
+        carrying = self.env.unwrapped.carrying
+        self.carry = [OBJECT_TO_IDX[carrying.type], COLOR_TO_IDX[carrying.color]] if carrying else [0, 0]
         return self._get_frame_obs(obs), reward, terminated, truncated, info
 
     def render(self, mode='human'):

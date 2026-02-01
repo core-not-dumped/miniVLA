@@ -18,10 +18,9 @@ env_ids = [
     "MiniGrid-GoToDoor-8x8-v0",
 ]
 
-
 lr = 3e-4
 batch_size = 256
-gamma = 0.96
+gamma = 0.97
 
 # DQN
 buffer_size = 300000

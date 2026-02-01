@@ -18,7 +18,7 @@ class MissionToArrayWrapper(gym.ObservationWrapper):
             low=0, high=3, shape=(channels//3,), dtype=np.int32
         )
         self.observation_space.spaces['carry'] = gym.spaces.Box(
-            low=0, high=1, shape=(channels//3,), dtype=np.int32
+            low=0, high=1, shape=(2,), dtype=np.int32
         )
         self.max_length = max_length
 

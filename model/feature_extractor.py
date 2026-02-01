@@ -63,12 +63,10 @@ class SimpleVLAmodel(nn.Module):
         )
         
         # carry embedding
-        one_carry_embed_dim = carry_embed_dim // self.frames_num
         self.carry_embedding = nn.Sequential(
-            nn.Embedding(2, one_carry_embed_dim),
-            nn.Linear(one_carry_embed_dim, one_carry_embed_dim),
+            nn.Linear(2, carry_embed_dim),
             nn.ReLU(),
-            nn.Linear(one_carry_embed_dim, one_carry_embed_dim),
+            nn.Linear(carry_embed_dim, carry_embed_dim),
             nn.ReLU()
         )
 
@@ -129,11 +127,14 @@ class VLAFeatureExtractor(BaseFeaturesExtractor):
         channels_type  = [i*3 + 0 for i in range(n_frames)]
         channels_color = [i*3 + 1 for i in range(n_frames)]
         channels_state = [i*3 + 2 for i in range(n_frames)]
-        image[:,channels_type] /= 8  # type
+        image[:,channels_type] /= 10  # type
         image[:,channels_color] /= 5  # color
         image[:,channels_state] /= 2  # state
         mission = observations["mission"].long()
         direction = observations["direction"].long()
-        carry = observations["carry"].long()
+        carry = observations["carry"]
+        carry[:,0] /= 10
+        carry[:,1] /= 5
+        print(carry)
         if direction.ndim == 1:   direction = direction.unsqueeze(-1)
         return self.vla(image, mission, direction, carry)
