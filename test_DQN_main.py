@@ -7,13 +7,13 @@ from model.feature_extractor import VLAFeatureExtractor
 from transformers import PreTrainedTokenizerFast
 import minigrid
 
-from src.hyperparam import *
+from src.hyperparam_DQN import *
 from src.env import *
 
 env = RandomMiniGridEnv(env_ids=env_ids, max_len=max_len, frame_num=DQN_frame_num, render_human=True)
 env = MissionToArrayWrapper(env, tokenizer, mission_max_length, DQN_frame_num*3)
 
-model = DQN.load(f"model/save_model/8x8_model_DQN_{test_learning_steps}.zip", env=env, device='cuda')  # 또는 'cpu'
+model = DQN.load(f"model/save_model/8x8_model_DQN_{test_learning_steps}_1.zip", env=env, device='cuda')  # 또는 'cpu'
 
 total_reward = 0
 episode = 0

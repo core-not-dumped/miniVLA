@@ -26,13 +26,14 @@ class NStepReturnWrapper(gym.Wrapper):
 
     
 class RandomCurriculumMiniGridEnv(gym.Env):
-    def __init__(self, env_ids, max_len=100, frame_num=4, rho=0.3, render_human=True):
+    def __init__(self, env_ids, max_len=100, frame_num=4, rho=0.3, beta=0.1, render_human=True):
         super().__init__()
         self.env_ids = env_ids
         self.n_envs = len(env_ids)
         self.render_human = render_human
         self.max_len = max_len
         self.frame_num=frame_num
+        self.beta = beta
 
         # PLR tracking
         self.rho = rho              # PLR replay weight
@@ -64,7 +65,7 @@ class RandomCurriculumMiniGridEnv(gym.Env):
         ranks = np.empty_like(sorted_indices)
         ranks[sorted_indices] = np.arange(1, len(Goldilocks)+1)
         h = 1.0 / ranks
-        Ps = h ** 0.1 # beta
+        Ps = h ** self.beta # beta
         Ps /= Ps.sum()
 
         # PC(l|C, c): 최근 방문한 레벨은 적게 replay
@@ -75,6 +76,10 @@ class RandomCurriculumMiniGridEnv(gym.Env):
         probs = (1 - self.rho) * Ps + self.rho * Pc
         probs /= probs.sum()
         li = np.random.choice(self.L_seen, p=probs)
+
+        if self.global_episode // 200 == 0:
+            print(f'{s_arr = }')
+            print(f'{self.L_seen = }')
         return li
 
     def _make_new_env(self, li=None):

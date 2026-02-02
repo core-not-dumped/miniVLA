@@ -1,19 +1,19 @@
 import torch
 import gymnasium as gym
 from sb3_contrib import RecurrentPPO
-from stable_baselines3.common.policies import MultiInputActorCriticPolicy
+from sb3_contrib.common.recurrent.policies import RecurrentMultiInputActorCriticPolicy
 from src.observation import MissionToArrayWrapper
 from model.feature_extractor import VLAFeatureExtractor
 from transformers import PreTrainedTokenizerFast
 import minigrid
 
-from src.hyperparam import *
+from src.hyperparam_RecurrentPPO import *
 from src.env import *
 
-env = RandomMiniGridEnv(env_ids=env_ids, max_len=max_len, frame_num=DQN_frame_num, render_human=True)
-env = MissionToArrayWrapper(env, tokenizer, mission_max_length, DQN_frame_num*3)
+env = RandomMiniGridEnv(env_ids=env_ids, max_len=max_len, frame_num=recurrent_frame_num, render_human=True)
+env = MissionToArrayWrapper(env, tokenizer, mission_max_length, recurrent_frame_num*3)
 
-model = RecurrentPPO.load(f"model/save_model/8x8_model_RecurrentPPO_{test_learning_steps}.zip", env=env, device='cuda')  # 또는 'cpu'
+model = RecurrentPPO.load(f"model/save_model/8x8_model_RecurrentPPO_{test_learning_steps}_0.zip", env=env, device='cuda')  # 또는 'cpu'
 
 total_reward = 0
 episode = 0

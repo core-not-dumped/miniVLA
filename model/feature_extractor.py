@@ -18,7 +18,7 @@ class FiLM(nn.Module):
 class SimpleVLAmodel(nn.Module):
     def __init__(self,
             vocab_size,
-            out_dim=256,
+            out_dim=512,
             start_channels=3,
             feat_channels=64,
             text_embed_dim=64,
