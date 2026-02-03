@@ -2,31 +2,14 @@ import gymnasium as gym
 import random
 import numpy as np
 from gym_minigrid.minigrid import OBJECT_TO_IDX, COLOR_TO_IDX
+from gymnasium.core import Wrapper
+import math
 
 from collections import deque
 
 
-# nstep_DQN과 반드시 같이 써야함!!
-class NStepReturnWrapper(gym.Wrapper):
-    def __init__(self, env, n_step=3):
-        super().__init__(env)
-        self.n_step = n_step
-        self.nstep_buffer = deque(maxlen=n_step+1)
-
-    def reset(self, **kwargs):
-        obs, info = self.env.reset(**kwargs)
-        self.nstep_buffer.clear()
-        return obs, info
-
-    def step(self, action):
-        obs, reward, terminated, truncated, info = self.env.step(action)
-        self.nstep_buffer.append((self.last_obs, action, reward, terminated or truncated))
-        info['nstep_buffer'] = list(self.nstep_buffer)
-        return obs, reward, terminated, truncated, info
-
-    
 class RandomCurriculumMiniGridEnv(gym.Env):
-    def __init__(self, env_ids, max_len=100, frame_num=4, rho=0.3, beta=0.1, render_human=True):
+    def __init__(self, env_ids, max_len=100, frame_num=4, rho=0.3, beta=0.1, scale=0.005, random_epi_num=1000, render_human=True):
         super().__init__()
         self.env_ids = env_ids
         self.n_envs = len(env_ids)
@@ -34,6 +17,8 @@ class RandomCurriculumMiniGridEnv(gym.Env):
         self.max_len = max_len
         self.frame_num=frame_num
         self.beta = beta
+        self.scale = scale
+        self.random_epi_num = random_epi_num
 
         # PLR tracking
         self.rho = rho              # PLR replay weight
@@ -56,7 +41,8 @@ class RandomCurriculumMiniGridEnv(gym.Env):
         return li
 
     def _sample_replay_level(self):
-        if self.global_episode < 1000:  return np.random.choice(self.L_seen)
+        if self.global_episode < self.random_epi_num:
+            return np.random.choice(self.L_seen)
 
         # PS(l|S): score 기반 낮은 점수
         s_arr = np.array([np.mean(s) for s in self.S])
@@ -68,6 +54,13 @@ class RandomCurriculumMiniGridEnv(gym.Env):
         Ps = h ** self.beta # beta
         Ps /= Ps.sum()
 
+        # 98퍼 이상 성공한 경우 확률 더 낮춤
+        high_score_mask = s_arr >= 0.7
+        linear_scale = (1.0 - s_arr) / 0.3
+        linear_scale = np.clip(linear_scale, 0.0, 1.0)
+        Ps[high_score_mask] *= linear_scale[high_score_mask]
+        Ps /= Ps.sum()  # 다시 정규화
+
         # PC(l|C, c): 최근 방문한 레벨은 적게 replay
         C_arr = np.array(self.C)
         recency = self.global_episode - C_arr
@@ -77,9 +70,9 @@ class RandomCurriculumMiniGridEnv(gym.Env):
         probs /= probs.sum()
         li = np.random.choice(self.L_seen, p=probs)
 
-        if self.global_episode // 200 == 0:
-            print(f'{s_arr = }')
-            print(f'{self.L_seen = }')
+        if self.global_episode % 300 == 0:
+            for s, env_name, prob in zip(s_arr, self.L_seen, probs):
+                print(f'env: {env_name}, {s = }, {prob = }')
         return li
 
     def _make_new_env(self, li=None):
@@ -110,6 +103,7 @@ class RandomCurriculumMiniGridEnv(gym.Env):
         self.image = deque([obs['image']] * self.frame_num, maxlen=self.frame_num)
         self.direction = deque([obs['direction']] * self.frame_num, maxlen=self.frame_num)
         self.carry = [0, 0]
+        self.counts = {}
         return self._get_frame_obs(obs), info
 
     def step(self, action):
@@ -122,6 +116,16 @@ class RandomCurriculumMiniGridEnv(gym.Env):
             self.S[self.env_idx].append(1 if reward > 0.3 else 0)
             self.C[self.env_idx] = self.global_episode
         if reward < 0:  reward = 0
+
+        # new position reward
+        tup = tuple(self.env.unwrapped.agent_pos)
+        pre_count = 0
+        if tup in self.counts:  pre_count = self.counts[tup]
+        new_count = pre_count + 1
+        self.counts[tup] = new_count
+        bonus = 1 / math.sqrt(new_count)
+        reward += bonus * self.scale
+
         return self._get_frame_obs(obs), reward, terminated, truncated, info
 
     def render(self, mode='human'):
@@ -129,7 +133,7 @@ class RandomCurriculumMiniGridEnv(gym.Env):
     
 
 class RandomMiniGridEnv(gym.Env):
-    def __init__(self, env_ids, max_len=100, frame_num=4, render_human=True):
+    def __init__(self, env_ids, max_len=100, frame_num=4, scale=0.002, render_human=True):
         super().__init__()
         self.env_ids = env_ids
         self.render_human = render_human
@@ -138,6 +142,7 @@ class RandomMiniGridEnv(gym.Env):
         self.observation_space = self.env.observation_space
         self.action_space = self.env.action_space
         self.frame_num = frame_num
+        self.scale = scale
 
     def _make_new_env(self):
         self.env_id = random.choice(self.env_ids)
@@ -157,6 +162,7 @@ class RandomMiniGridEnv(gym.Env):
         self.image = deque([obs['image']] * self.frame_num, maxlen=self.frame_num)
         self.direction = deque([obs['direction']] * self.frame_num, maxlen=self.frame_num)
         self.carry = [0, 0]
+        self.counts = {}
         return self._get_frame_obs(obs), info
 
     def step(self, action):
@@ -165,6 +171,16 @@ class RandomMiniGridEnv(gym.Env):
         self.direction.append(obs['direction'])
         carrying = self.env.unwrapped.carrying
         self.carry = [OBJECT_TO_IDX[carrying.type], COLOR_TO_IDX[carrying.color]] if carrying else [0, 0]
+        
+        # new position reward
+        tup = tuple(self.env.unwrapped.agent_pos)
+        pre_count = 0
+        if tup in self.counts:  pre_count = self.counts[tup]
+        new_count = pre_count + 1
+        self.counts[tup] = new_count
+        bonus = 1 / math.sqrt(new_count)
+        reward += bonus * self.scale
+
         return self._get_frame_obs(obs), reward, terminated, truncated, info
 
     def render(self, mode='human'):

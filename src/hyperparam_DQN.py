@@ -74,6 +74,8 @@ max_len = 100
 DQN_frame_num = 4
 
 beta = [0.1, 0.2, 0.2, 0.2][level]
+scale = 0.003
+random_epi_num = 1000
 
 tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

@@ -12,9 +12,10 @@ from src.callback import *
 from src.env import *
 
 def make_custom_env():
-    env = RandomCurriculumMiniGridEnv(env_ids=env_ids, max_len=max_len, frame_num=recurrent_frame_num, beta=beta, render_human=False)
+    env = RandomCurriculumMiniGridEnv(env_ids=env_ids, max_len=max_len, frame_num=recurrent_frame_num, beta=beta, scale=scale, random_epi_num=random_epi_num, render_human=False)
     env = MissionToArrayWrapper(env, tokenizer, mission_max_length, recurrent_frame_num*3)
     return env
+
 env = make_vec_env(make_custom_env, n_envs=num_cpu)
 
 features_extractor_class = VLAFeatureExtractor
@@ -26,7 +27,7 @@ features_extractor_kwargs = dict(
 )
 
 if retrain:
-    model = RecurrentPPO.load(f"model/save_model/8x8_model_Reccurent_{retrain_learning_steps}_{level-1}.zip", env=env, device='cuda')  # 또는 'cpu'
+    model = RecurrentPPO.load(f"model/save_model/8x8_model_RecurrentPPO_{retrain_learning_steps}_{level-1}.zip", env=env, device='cuda')  # 또는 'cpu'
 else:
     policy_class = RecurrentMultiInputActorCriticPolicy
     policy_kwargs = dict(
@@ -34,6 +35,7 @@ else:
         features_extractor_kwargs = features_extractor_kwargs,
         optimizer_class = torch.optim.Adam,
         net_arch=dict(pi=[256, 256], vf=[256, 256]),
+        lstm_hidden_size=features_dim,
         normalize_images=False,
     )
 
@@ -66,6 +68,9 @@ for epoch in range(epochs):
         total_timesteps=train_learning_steps,
         callback=WandbCallbackcustom(num_cpu=num_cpu, use_PPO=True)
     )
-    model.save(f"model/save_model/8x8_model_RecurrentPPO_{(epoch+1)*train_learning_steps}_{level}")
+    if retrain:
+        model.save(f"model/save_model/8x8_model_RecurrentPPO_{(epoch+1)*train_learning_steps+retrain_learning_steps}_{level}")
+    else:
+        model.save(f"model/save_model/8x8_model_RecurrentPPO_{(epoch+1)*train_learning_steps}_{level}")
 
 wandb.finish()
