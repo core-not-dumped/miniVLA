@@ -104,6 +104,7 @@ mission_max_length = 24
 features_dim = 512
 max_len = 100
 DQN_frame_num = 4
+score_len = 100
 
 beta = 0.3
 scale = 0.003

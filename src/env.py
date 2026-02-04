@@ -9,7 +9,7 @@ from collections import deque
 
 
 class RandomCurriculumMiniGridEnv(gym.Env):
-    def __init__(self, env_ids, max_len=100, frame_num=4, rho=0.3, beta=0.1, scale=0.005, random_epi_num=1000, render_human=True):
+    def __init__(self, env_ids, max_len=100, frame_num=4, rho=0.3, beta=0.1, scale=0.005, random_epi_num=1000, score_len=100, render_human=True):
         super().__init__()
         self.env_ids = env_ids
         self.n_envs = len(env_ids)
@@ -19,6 +19,7 @@ class RandomCurriculumMiniGridEnv(gym.Env):
         self.beta = beta
         self.scale = scale
         self.random_epi_num = random_epi_num
+        self.score_len = score_len
 
         # PLR tracking
         self.rho = rho              # PLR replay weight
@@ -27,6 +28,7 @@ class RandomCurriculumMiniGridEnv(gym.Env):
         self.C = []                 # timestamp
         self.global_episode = 0     # 전체 에피소드 수
 
+        self.env = None
         self._make_new_env()
         self.observation_space = self.env.observation_space
         self.action_space = self.env.action_space
@@ -36,7 +38,7 @@ class RandomCurriculumMiniGridEnv(gym.Env):
         if len(unseen) == 0:    return None
         li = np.random.choice(unseen)
         self.L_seen.append(li)
-        self.S.append(deque([0.0], maxlen=100))
+        self.S.append(deque([0.0] * self.score_len, maxlen=self.score_len))
         self.C.append(0)
         return li
 
@@ -86,6 +88,7 @@ class RandomCurriculumMiniGridEnv(gym.Env):
 
         self.env_idx = self.L_seen.index(li)
         self.env_id = li
+        if self.env:    self.env.close()
         if self.render_human:   env = gym.make(self.env_id, render_mode='human', max_episode_steps=self.max_len)
         else:                   env = gym.make(self.env_id, max_episode_steps=self.max_len)
         self.env = env
@@ -138,6 +141,8 @@ class RandomMiniGridEnv(gym.Env):
         self.env_ids = env_ids
         self.render_human = render_human
         self.max_len = max_len
+
+        self.env = None
         self._make_new_env()
         self.observation_space = self.env.observation_space
         self.action_space = self.env.action_space
@@ -146,6 +151,7 @@ class RandomMiniGridEnv(gym.Env):
 
     def _make_new_env(self):
         self.env_id = random.choice(self.env_ids)
+        if self.env:    self.env.close()
         if self.render_human:   env = gym.make(self.env_id, render_mode='human', max_episode_steps=self.max_len)
         else:                   env = gym.make(self.env_id, max_episode_steps=self.max_len)
         self.env = env

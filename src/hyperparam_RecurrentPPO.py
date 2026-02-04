@@ -1,5 +1,6 @@
 import torch
 from transformers import AutoTokenizer
+import gym_minigrid.minigrid
 
 # DQN 학습시
 # level, lr, batch_size, gamma, retrain 다시보기
@@ -97,13 +98,14 @@ ent_coef = 0.01
 
 linear_decay_lr = True
 epochs = 200
-test_learning_steps = 2000000
+test_learning_steps = 9000000
 train_learning_steps = 1000000
-retrain_learning_steps = 40000000
+retrain_learning_steps = 6000000
 mission_max_length = 32
 features_dim = 512
 max_len = 200
 recurrent_frame_num = 4
+score_len = 100
 
 beta = 0.3
 scale = 0.003
