@@ -98,7 +98,7 @@ ent_coef = 0.01
 
 linear_decay_lr = True
 epochs = 200
-test_learning_steps = 9000000
+test_learning_steps = 11000000
 train_learning_steps = 1000000
 retrain_learning_steps = 6000000
 mission_max_length = 32

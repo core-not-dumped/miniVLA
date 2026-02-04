@@ -28,7 +28,6 @@ class RandomCurriculumMiniGridEnv(gym.Env):
         self.C = []                 # timestamp
         self.global_episode = 0     # 전체 에피소드 수
 
-        self.env = None
         self._make_new_env()
         self.observation_space = self.env.observation_space
         self.action_space = self.env.action_space
@@ -88,7 +87,6 @@ class RandomCurriculumMiniGridEnv(gym.Env):
 
         self.env_idx = self.L_seen.index(li)
         self.env_id = li
-        if self.env:    self.env.close()
         if self.render_human:   env = gym.make(self.env_id, render_mode='human', max_episode_steps=self.max_len)
         else:                   env = gym.make(self.env_id, max_episode_steps=self.max_len)
         self.env = env
@@ -101,8 +99,17 @@ class RandomCurriculumMiniGridEnv(gym.Env):
 
     def reset(self, **kwargs):
         self.global_episode += 1
-        self._make_new_env()
-        obs, info = self.env.reset(**kwargs)
+        # map을 만들지 못할경우, recursionerror나옴
+        for _ in range(20):
+            try:
+                self._make_new_env()
+                obs, info = self.env.reset(**kwargs)
+                break
+            except RecursionError:
+                continue
+        else:
+            raise RuntimeError("Env reset failed repeatedly")
+
         self.image = deque([obs['image']] * self.frame_num, maxlen=self.frame_num)
         self.direction = deque([obs['direction']] * self.frame_num, maxlen=self.frame_num)
         self.carry = [0, 0]
@@ -142,7 +149,6 @@ class RandomMiniGridEnv(gym.Env):
         self.render_human = render_human
         self.max_len = max_len
 
-        self.env = None
         self._make_new_env()
         self.observation_space = self.env.observation_space
         self.action_space = self.env.action_space
@@ -151,7 +157,6 @@ class RandomMiniGridEnv(gym.Env):
 
     def _make_new_env(self):
         self.env_id = random.choice(self.env_ids)
-        if self.env:    self.env.close()
         if self.render_human:   env = gym.make(self.env_id, render_mode='human', max_episode_steps=self.max_len)
         else:                   env = gym.make(self.env_id, max_episode_steps=self.max_len)
         self.env = env
