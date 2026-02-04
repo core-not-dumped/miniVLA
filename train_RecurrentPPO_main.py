@@ -11,9 +11,8 @@ from src.hyperparam_RecurrentPPO import *
 from src.callback import *
 from src.env import *
 
-import builtins
-
 # Sampling rejected 메시지만 무시
+import builtins
 original_print = builtins.print
 def print_override(*args, **kwargs):
     if args and "Sampling rejected" in str(args[0]):
@@ -28,17 +27,18 @@ def make_custom_env():
 
 env = make_vec_env(make_custom_env, n_envs=num_cpu)
 
-features_extractor_class = VLAFeatureExtractor
-features_extractor_kwargs = dict(
-    features_dim=features_dim,
-    vocab_size = tokenizer.vocab_size-1,
-    start_channels=recurrent_frame_num*3,
-    device=device
-)
 
 if retrain:
     model = RecurrentPPO.load(f"model/save_model/8x8_model_RecurrentPPO_{retrain_learning_steps}.zip", env=env, device='cuda')  # 또는 'cpu'
 else:
+    features_extractor_class = VLAFeatureExtractor
+    features_extractor_kwargs = dict(
+        features_dim=features_dim,
+        vocab_size = tokenizer.vocab_size-1,
+        start_channels=recurrent_frame_num*3,
+        device=device
+    )
+
     policy_class = RecurrentMultiInputActorCriticPolicy
     policy_kwargs = dict(
         features_extractor_class = features_extractor_class,

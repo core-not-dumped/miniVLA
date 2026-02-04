@@ -11,6 +11,15 @@ from src.hyperparam_DQN import *
 from src.callback import *
 from src.env import *
 
+# Sampling rejected 메시지만 무시
+import builtins
+original_print = builtins.print
+def print_override(*args, **kwargs):
+    if args and "Sampling rejected" in str(args[0]):
+        return
+    original_print(*args, **kwargs)
+builtins.print = print_override
+
 def make_custom_env():
     env = RandomCurriculumMiniGridEnv(env_ids=env_ids, max_len=max_len, frame_num=DQN_frame_num, beta=beta, scale=scale, random_epi_num=random_epi_num, render_human=False)
     env = MissionToArrayWrapper(env, tokenizer, mission_max_length, DQN_frame_num*3)
