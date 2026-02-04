@@ -160,7 +160,6 @@ env_ids = [
         "MiniGrid-Fetch-8x8-N3-v0",
         "MiniGrid-Dynamic-Obstacles-Random-6x6-v0",
         "MiniGrid-KeyCorridorS3R1-v0",
-        "MiniGrid-MemoryS7-v0",
 
         "MiniGrid-PutNear-8x8-N3-v0",
         "MiniGrid-RedBlueDoors-8x8-v0",
@@ -168,7 +167,6 @@ env_ids = [
         "MiniGrid-LavaCrossingS9N3-v0",
         "MiniGrid-SimpleCrossingS9N3-v0",
         "MiniGrid-KeyCorridorS3R2-v0",
-        "MiniGrid-MemoryS11-v0",
 
         "MiniGrid-DoorKey-8x8-v0",
         "MiniGrid-Unlock-v0",
@@ -177,14 +175,12 @@ env_ids = [
         "MiniGrid-SimpleCrossingS11N5-v0",
         "MiniGrid-Dynamic-Obstacles-16x16-v0",
         "MiniGrid-KeyCorridorS3R3-v0",
-        "MiniGrid-MemoryS13-v0",
 
         "MiniGrid-UnlockPickup-v0",
         "MiniGrid-MultiRoom-N4-S5-v0",
         "MiniGrid-BlockedUnlockPickup-v0",
         "MiniGrid-DoorKey-16x16-v0",
         "MiniGrid-KeyCorridorS4R3-v0",
-        "MiniGrid-MemoryS17Random-v0",
 
         "MiniGrid-LockedRoom-v0",
         "MiniGrid-ObstructedMaze-2Dlhb-v1",
@@ -199,6 +195,7 @@ env_ids = [
         "MiniGrid-ObstructedMaze-Full-v1", # 9 full
     ],
 ][level]
+test_spe_env_id = ["MiniGrid-MultiRoom-N4-S5-v0"]
 
 retrain = False
 
@@ -215,7 +212,7 @@ ent_coef = 0.01
 
 linear_decay_lr = True
 epochs = [5, 20, 15, 10, 0, 0, 0, 0, 0, 200][level]
-test_learning_steps = 42000000
+test_learning_steps = 1000000
 train_learning_steps = 1000000
 retrain_learning_steps = 40000000
 mission_max_length = 24
