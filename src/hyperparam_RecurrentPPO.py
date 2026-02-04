@@ -4,204 +4,89 @@ from transformers import AutoTokenizer
 # DQN 학습시
 # level, lr, batch_size, gamma, retrain 다시보기
 
-level = 9
 env_ids = [
-    [
-        "MiniGrid-MultiRoom-N2-S4-v0",
-        "MiniGrid-LavaGapS7-v0",
-        "MiniGrid-GoToObject-8x8-N2-v0", # 0
-    ],
-    [
-        "MiniGrid-MultiRoom-N2-S4-v0",
-        "MiniGrid-LavaGapS7-v0",
-        "MiniGrid-GoToObject-8x8-N2-v0",
+    "BabyAI-GoToRedBallGrey-v0",
+    "BabyAI-GoToRedBall-v0",
+    "BabyAI-GoToObjS6-v1",
+    "BabyAI-GoToLocal-v0",
+    "BabyAI-GoToLocalS5N2-v0",
+    "BabyAI-GoToLocalS7N4-v0",
+    "BabyAI-GoToLocalS8N6-v0",
 
-        "MiniGrid-GoToDoor-8x8-v0",
-        "MiniGrid-Fetch-8x8-N3-v0",
-        "MiniGrid-Dynamic-Obstacles-Random-6x6-v0", # 1
-    ],
-    [
-        "MiniGrid-MultiRoom-N2-S4-v0",
-        "MiniGrid-LavaGapS7-v0",
-        "MiniGrid-GoToObject-8x8-N2-v0",
-        "MiniGrid-GoToDoor-8x8-v0",
-        "MiniGrid-Fetch-8x8-N3-v0",
-        "MiniGrid-Dynamic-Obstacles-Random-6x6-v0",
+    "BabyAI-GoToObjMazeS4R2-v0",
+    "BabyAI-GoToObjMazeS5-v0",
+    "BabyAI-GoToObjMazeS7-v0",
 
-        "MiniGrid-PutNear-8x8-N3-v0",
-        "MiniGrid-RedBlueDoors-8x8-v0",
-        "MiniGrid-Dynamic-Obstacles-8x8-v0", # 2
-    ],
-    [
-        "MiniGrid-MultiRoom-N2-S4-v0",
-        "MiniGrid-LavaGapS7-v0",
-        "MiniGrid-GoToObject-8x8-N2-v0",
-        "MiniGrid-GoToDoor-8x8-v0",
-        "MiniGrid-Fetch-8x8-N3-v0",
-        "MiniGrid-Dynamic-Obstacles-Random-6x6-v0",
-        "MiniGrid-PutNear-8x8-N3-v0",
-        "MiniGrid-RedBlueDoors-8x8-v0",
-        "MiniGrid-Dynamic-Obstacles-8x8-v0",
+    "BabyAI-GoToSeqS5R2-v0",
 
-        "MiniGrid-DoorKey-8x8-v0",
-        "MiniGrid-Unlock-v0",
-        "MiniGrid-FourRooms-v0", # 3
-    ],
-    [
-        "MiniGrid-MultiRoom-N2-S4-v0",
-        "MiniGrid-LavaGapS7-v0",
-        "MiniGrid-GoToObject-8x8-N2-v0",
-        "MiniGrid-GoToDoor-8x8-v0",
-        "MiniGrid-Fetch-8x8-N3-v0",
-        "MiniGrid-Dynamic-Obstacles-Random-6x6-v0",
-        "MiniGrid-PutNear-8x8-N3-v0",
-        "MiniGrid-RedBlueDoors-8x8-v0",
-        "MiniGrid-Dynamic-Obstacles-8x8-v0",
-        "MiniGrid-DoorKey-8x8-v0",
-        "MiniGrid-Unlock-v0",
-        "MiniGrid-FourRooms-v0",
+    "BabyAI-GoToDoor-v0",
+    "BabyAI-GoToObjDoor-v0",
 
-        "MiniGrid-UnlockPickup-v0",
-        "MiniGrid-MultiRoom-N4-S5-v0",
-        "MiniGrid-BlockedUnlockPickup-v0", # 4
-    ],
-    [
-        "MiniGrid-MultiRoom-N2-S4-v0",
-        "MiniGrid-LavaGapS7-v0",
-        "MiniGrid-GoToObject-8x8-N2-v0",
-        "MiniGrid-GoToDoor-8x8-v0",
-        "MiniGrid-Fetch-8x8-N3-v0",
-        "MiniGrid-Dynamic-Obstacles-Random-6x6-v0",
-        "MiniGrid-PutNear-8x8-N3-v0",
-        "MiniGrid-RedBlueDoors-8x8-v0",
-        "MiniGrid-Dynamic-Obstacles-8x8-v0",
-        "MiniGrid-DoorKey-8x8-v0",
-        "MiniGrid-Unlock-v0",
-        "MiniGrid-FourRooms-v0",
-        "MiniGrid-UnlockPickup-v0",
-        "MiniGrid-MultiRoom-N4-S5-v0",
-        "MiniGrid-BlockedUnlockPickup-v0",
+    "BabyAI-OpenDoor-v0",
+    "BabyAI-OpenTwoDoors-v0",
+    "BabyAI-OpenRedBlueDoors-v0",
+    "BabyAI-OpenDoorsOrderN2-v0",
+    "BabyAI-OpenDoorsOrderN4-v0",
 
-        "MiniGrid-LockedRoom-v0",
-        "MiniGrid-ObstructedMaze-2Dlhb-v1", # 5
-    ],
-    [
-        "MiniGrid-MultiRoom-N2-S4-v0",
-        "MiniGrid-LavaGapS7-v0",
-        "MiniGrid-GoToObject-8x8-N2-v0",
-        "MiniGrid-GoToDoor-8x8-v0",
-        "MiniGrid-Fetch-8x8-N3-v0",
-        "MiniGrid-Dynamic-Obstacles-Random-6x6-v0",
-        "MiniGrid-PutNear-8x8-N3-v0",
-        "MiniGrid-RedBlueDoors-8x8-v0",
-        "MiniGrid-Dynamic-Obstacles-8x8-v0",
-        "MiniGrid-DoorKey-8x8-v0",
-        "MiniGrid-Unlock-v0",
-        "MiniGrid-FourRooms-v0",
-        "MiniGrid-UnlockPickup-v0",
-        "MiniGrid-MultiRoom-N4-S5-v0",
-        "MiniGrid-BlockedUnlockPickup-v0",
-        "MiniGrid-LockedRoom-v0",
-        "MiniGrid-ObstructedMaze-2Dlhb-v1",
-        
-        "MiniGrid-ObstructedMaze-1Q-v1", # 6
-    ],
-    [
-        "MiniGrid-MultiRoom-N2-S4-v0",
-        "MiniGrid-LavaGapS7-v0",
-        "MiniGrid-GoToObject-8x8-N2-v0",
-        "MiniGrid-GoToDoor-8x8-v0",
-        "MiniGrid-Fetch-8x8-N3-v0",
-        "MiniGrid-Dynamic-Obstacles-Random-6x6-v0",
-        "MiniGrid-PutNear-8x8-N3-v0",
-        "MiniGrid-RedBlueDoors-8x8-v0",
-        "MiniGrid-Dynamic-Obstacles-8x8-v0",
-        "MiniGrid-DoorKey-8x8-v0",
-        "MiniGrid-Unlock-v0",
-        "MiniGrid-FourRooms-v0",
-        "MiniGrid-UnlockPickup-v0",
-        "MiniGrid-MultiRoom-N4-S5-v0",
-        "MiniGrid-BlockedUnlockPickup-v0",
-        "MiniGrid-LockedRoom-v0",
-        "MiniGrid-ObstructedMaze-2Dlhb-v1",
-        "MiniGrid-ObstructedMaze-1Q-v1",
+    "BabyAI-PickupLoc-v0",
+    "BabyAI-PickupDist-v0",
+    "BabyAI-PickupAbove-v0",
+    "BabyAI-PutNextLocal-v0",
 
-        "MiniGrid-ObstructedMaze-2Q-v1", # 7
-    ],
-    [
-        "MiniGrid-MultiRoom-N2-S4-v0",
-        "MiniGrid-LavaGapS7-v0",
-        "MiniGrid-GoToObject-8x8-N2-v0",
-        "MiniGrid-GoToDoor-8x8-v0",
-        "MiniGrid-Fetch-8x8-N3-v0",
-        "MiniGrid-Dynamic-Obstacles-Random-6x6-v0",
-        "MiniGrid-PutNear-8x8-N3-v0",
-        "MiniGrid-RedBlueDoors-8x8-v0",
-        "MiniGrid-Dynamic-Obstacles-8x8-v0",
-        "MiniGrid-DoorKey-8x8-v0",
-        "MiniGrid-Unlock-v0",
-        "MiniGrid-FourRooms-v0",
-        "MiniGrid-UnlockPickup-v0",
-        "MiniGrid-MultiRoom-N4-S5-v0",
-        "MiniGrid-BlockedUnlockPickup-v0",
-        "MiniGrid-LockedRoom-v0",
-        "MiniGrid-ObstructedMaze-2Dlhb-v1",
-        "MiniGrid-ObstructedMaze-1Q-v1",
-        "MiniGrid-ObstructedMaze-2Q-v1",
+    "BabyAI-PutNextLocalS5N3-v0",
+    "BabyAI-PutNextLocalS6N4-v0",
+    "BabyAI-PutNextS4N1-v0",
+    "BabyAI-PutNextS5N2-v0",
+    "BabyAI-PutNextS7N4-v0",
+    "BabyAI-PutNextS5N2Carrying-v0",
+    "BabyAI-PutNextS6N3Carrying-v0",
+    "BabyAI-PutNextS7N4Carrying-v0",
 
-        "MiniGrid-ObstructedMaze-Full-v1", # 8
-    ],
-    [
-        "MiniGrid-MultiRoom-N2-S4-v0",
-        "MiniGrid-LavaGapS7-v0",
-        "MiniGrid-GoToObject-8x8-N2-v0",
+    "BabyAI-UnlockLocal-v0",
+    "BabyAI-UnlockLocalDist-v0",
+    "BabyAI-KeyInBox-v0",
+    "BabyAI-UnlockPickup-v0",
+    "BabyAI-UnlockPickupDist-v0",
+    "BabyAI-BlockedUnlockPickup-v0",
+    "BabyAI-UnlockToUnlock-v0",
+    "BabyAI-ActionObjDoor-v0",
+    "BabyAI-FindObjS5-v0",
+    "BabyAI-FindObjS7-v0",
+    "BabyAI-KeyCorridorS3R1-v0",
+    "BabyAI-KeyCorridorS3R3-v0",
+    "BabyAI-KeyCorridorS4R3-v0",
+    "BabyAI-KeyCorridorS6R3-v0",
+    "BabyAI-OneRoomS16-v0",
+    "BabyAI-OneRoomS20-v0",
+    "BabyAI-MoveTwoAcrossS5N2-v0",
+    "BabyAI-MoveTwoAcrossS8N9-v0",
 
-        "MiniGrid-GoToDoor-8x8-v0",
-        "MiniGrid-Fetch-8x8-N3-v0",
-        "MiniGrid-Dynamic-Obstacles-Random-6x6-v0",
-        "MiniGrid-KeyCorridorS3R1-v0",
+    "BabyAI-SynthS5R2-v0",
+    "BabyAI-SynthLoc-v0",
+    "BabyAI-SynthSeq-v0",
 
-        "MiniGrid-PutNear-8x8-N3-v0",
-        "MiniGrid-RedBlueDoors-8x8-v0",
-        "MiniGrid-Dynamic-Obstacles-8x8-v0",
-        "MiniGrid-LavaCrossingS9N3-v0",
-        "MiniGrid-SimpleCrossingS9N3-v0",
-        "MiniGrid-KeyCorridorS3R2-v0",
-
-        "MiniGrid-DoorKey-8x8-v0",
-        "MiniGrid-Unlock-v0",
-        "MiniGrid-FourRooms-v0",
-        "MiniGrid-LavaCrossingS11N5-v0",
-        "MiniGrid-SimpleCrossingS11N5-v0",
-        "MiniGrid-Dynamic-Obstacles-16x16-v0",
-        "MiniGrid-KeyCorridorS3R3-v0",
-
-        "MiniGrid-UnlockPickup-v0",
-        "MiniGrid-MultiRoom-N4-S5-v0",
-        "MiniGrid-BlockedUnlockPickup-v0",
-        "MiniGrid-DoorKey-16x16-v0",
-        "MiniGrid-KeyCorridorS4R3-v0",
-
-        "MiniGrid-LockedRoom-v0",
-        "MiniGrid-ObstructedMaze-2Dlhb-v1",
-        "MiniGrid-KeyCorridorS5R3-v0",
-        "MiniGrid-MultiRoom-N6-v0",
-
-        "MiniGrid-ObstructedMaze-1Q-v1",
-        "MiniGrid-KeyCorridorS6R3-v0",
-
-        "MiniGrid-ObstructedMaze-2Q-v1",
-
-        "MiniGrid-ObstructedMaze-Full-v1", # 9 full
-    ],
-][level]
-test_spe_env_id = ["MiniGrid-MultiRoom-N4-S5-v0"]
+    "BabyAI-GoToObjMazeOpen-v0",
+    "BabyAI-GoToObjMaze-v0",
+    "BabyAI-UnblockPickup-v0",
+    "BabyAI-GoTo-v0",
+    "BabyAI-Open-v0",
+    "BabyAI-Pickup-v0",
+    "BabyAI-Unlock-v0",
+    "BabyAI-GoToImpUnlock-v0",
+    "BabyAI-Synth-v0",
+    "BabyAI-GoToSeq-v0",
+    "BabyAI-MiniBossLevel-v0",
+    "BabyAI-BossLevel-v0",
+    "BabyAI-BossLevelNoUnlock-v0",
+]
+test_spe_env_id = ["BabyAI-BossLevel-v0"]
+print(f'{len(env_ids) = }')
 
 retrain = False
 
-lr = [2e-4, 1e-4, 7e-5, 7e-5, 0, 0, 0, 0, 0, 1.5e-4][level]
+lr = 1.5e-4
 batch_size = 512
-gamma = [0.96, 0.96, 0.96, 0.97, 0.97, 0.98, 0.99, 0.99, 0.99, 0.99][level]
+gamma = 0.99
 
 # PPO
 n_steps = 256
@@ -211,16 +96,16 @@ clip_range = 0.2
 ent_coef = 0.01
 
 linear_decay_lr = True
-epochs = [5, 20, 15, 10, 0, 0, 0, 0, 0, 200][level]
-test_learning_steps = 1000000
+epochs = 200
+test_learning_steps = 2000000
 train_learning_steps = 1000000
 retrain_learning_steps = 40000000
-mission_max_length = 24
+mission_max_length = 32
 features_dim = 512
-max_len = [20, 50, 100, 100, 100, 150, 150, 150, 200, 200][level]
+max_len = 200
 recurrent_frame_num = 4
 
-beta = [0.6, 0.4, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3][level]
+beta = 0.3
 scale = 0.003
 random_epi_num = 0
 

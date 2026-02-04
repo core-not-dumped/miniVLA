@@ -27,7 +27,7 @@ features_extractor_kwargs = dict(
 )
 
 if retrain:
-    model = DQN.load(f"model/save_model/8x8_model_DQN_{retrain_learning_steps}_{level-1}.zip", env=env, device='cuda')  # 또는 'cpu'
+    model = DQN.load(f"model/save_model/8x8_model_DQN_{retrain_learning_steps}.zip", env=env, device='cuda')  # 또는 'cpu'
     model.replay_buffer.reset()
 else:
     policy = MultiInputDuelingPolicy
@@ -52,7 +52,7 @@ else:
         verbose=1,
     )
 
-name = f'DQN_{lr}_{batch_size}_{gamma}_{features_dim}_{level}'
+name = f'DQN_{lr}_{batch_size}_{gamma}_{features_dim}'
 run = wandb.init(project='grid_world', name=name)
 
 for epoch in range(epochs):
@@ -83,8 +83,8 @@ for epoch in range(epochs):
     if epoch >= 1:  model.learning_starts = 0
 
     if retrain:
-        model.save(f"model/save_model/8x8_model_DQN_{(epoch+1)*train_learning_steps+retrain_learning_steps}_{level}")
+        model.save(f"model/save_model/8x8_model_DQN_{(epoch+1)*train_learning_steps+retrain_learning_steps}")
     else:
-        model.save(f"model/save_model/8x8_model_DQN_{(epoch+1)*train_learning_steps}_{level}")
+        model.save(f"model/save_model/8x8_model_DQN_{(epoch+1)*train_learning_steps}")
 
 wandb.finish()

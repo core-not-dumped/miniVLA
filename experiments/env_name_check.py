@@ -11,3 +11,5 @@ print()
 for env_id in gym.envs.registry.keys():
     if env_id.startswith("MiniGrid-"):
         print(env_id)
+    if env_id.startswith("BabyAI-"):
+        print(env_id)

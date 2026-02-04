@@ -11,6 +11,16 @@ from src.hyperparam_RecurrentPPO import *
 from src.callback import *
 from src.env import *
 
+import builtins
+
+# Sampling rejected 메시지만 무시
+original_print = builtins.print
+def print_override(*args, **kwargs):
+    if args and "Sampling rejected" in str(args[0]):
+        return
+    original_print(*args, **kwargs)
+builtins.print = print_override
+
 def make_custom_env():
     env = RandomCurriculumMiniGridEnv(env_ids=env_ids, max_len=max_len, frame_num=recurrent_frame_num, beta=beta, scale=scale, random_epi_num=random_epi_num, render_human=False)
     env = MissionToArrayWrapper(env, tokenizer, mission_max_length, recurrent_frame_num*3)
@@ -27,7 +37,7 @@ features_extractor_kwargs = dict(
 )
 
 if retrain:
-    model = RecurrentPPO.load(f"model/save_model/8x8_model_RecurrentPPO_{retrain_learning_steps}_{level-1}.zip", env=env, device='cuda')  # 또는 'cpu'
+    model = RecurrentPPO.load(f"model/save_model/8x8_model_RecurrentPPO_{retrain_learning_steps}.zip", env=env, device='cuda')  # 또는 'cpu'
 else:
     policy_class = RecurrentMultiInputActorCriticPolicy
     policy_kwargs = dict(
@@ -55,7 +65,7 @@ else:
         verbose=1,
     )
 
-name = f'RecurrentPPO_{lr}_{batch_size}_{gamma}_{features_dim}_{level}'
+name = f'RecurrentPPO_{lr}_{batch_size}_{gamma}_{features_dim}'
 run = wandb.init(project='grid_world', name=name)
 
 for epoch in range(epochs):
@@ -69,8 +79,10 @@ for epoch in range(epochs):
         callback=WandbCallbackcustom(num_cpu=num_cpu, use_PPO=True)
     )
     if retrain:
-        model.save(f"model/save_model/8x8_model_RecurrentPPO_{(epoch+1)*train_learning_steps+retrain_learning_steps}_{level}")
+        model.save(f"model/save_model/8x8_model_RecurrentPPO_{(epoch+1)*train_learning_steps+retrain_learning_steps}")
+        print(f"model/save_model/8x8_model_RecurrentPPO_{(epoch+1)*train_learning_steps+retrain_learning_steps} saved !")
     else:
-        model.save(f"model/save_model/8x8_model_RecurrentPPO_{(epoch+1)*train_learning_steps}_{level}")
+        model.save(f"model/save_model/8x8_model_RecurrentPPO_{(epoch+1)*train_learning_steps}")
+        print(f"model/save_model/8x8_model_RecurrentPPO_{(epoch+1)*train_learning_steps} saved !")
 
 wandb.finish()

@@ -36,7 +36,7 @@ class RandomCurriculumMiniGridEnv(gym.Env):
         if len(unseen) == 0:    return None
         li = np.random.choice(unseen)
         self.L_seen.append(li)
-        self.S.append(deque([0.0], maxlen=200))
+        self.S.append(deque([0.0], maxlen=100))
         self.C.append(0)
         return li
 
@@ -54,7 +54,7 @@ class RandomCurriculumMiniGridEnv(gym.Env):
         Ps = h ** self.beta # beta
         Ps /= Ps.sum()
 
-        # 98퍼 이상 성공한 경우 확률 더 낮춤
+        # 70퍼 이상 성공한 경우 확률 더 낮춤
         high_score_mask = s_arr >= 0.7
         linear_scale = (1.0 - s_arr) / 0.3
         linear_scale = np.clip(linear_scale, 0.0, 1.0)
