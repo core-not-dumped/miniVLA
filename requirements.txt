@@ -1,0 +1,14 @@
+--index-url https://download.pytorch.org/whl/cu126
+
+numpy==2.4.1
+torch==2.10.0+cu126
+torchvision==0.25.0+cu126
+stable-baselines3==2.7.1
+sb3-contrib==2.7.1
+gymnasium==1.2.3
+minigrid==3.0.0
+gym-minigrid==1.2.2
+pygame==2.6.1
+imageio==2.37.2
+pyyaml==6.0.3
+wandb==0.24.0
