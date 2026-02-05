@@ -87,7 +87,8 @@ retrain = False
 
 lr = 1.5e-4
 batch_size = 512
-gamma = 0.99
+gamma_start = 0.99
+gamma_end = 0.995
 
 # PPO
 n_steps = 256

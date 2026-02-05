@@ -58,7 +58,7 @@ else:
         n_steps=n_steps,
         batch_size=batch_size,
         n_epochs=n_epochs,
-        gamma=gamma,
+        gamma=gamma_start,
         gae_lambda=gae_lambda,
         clip_range=clip_range,
         ent_coef=ent_coef,
@@ -66,19 +66,28 @@ else:
         verbose=1,
     )
 
-name = f'RecurrentPPO_{lr}_{batch_size}_{gamma}_{features_dim}'
+name = f'RecurrentPPO_{lr}_{batch_size}_{gamma_start}_{features_dim}'
 run = wandb.init(project='grid_world', name=name)
 
 for epoch in range(epochs):
+    # gamma scheduling
+    p = epoch / (epochs - 1)
+    model.gamma = gamma_start + (gamma_end - gamma_start) * (p ** 0.5)
+    
+    # lr scheduling
     if linear_decay_lr:
         def linear_decay_scheduler(progress_remaining):
             pres_lr = lr * (epochs - epoch - (1 - progress_remaining)) / epochs
             return pres_lr
         model.lr_schedule = linear_decay_scheduler
+    
+    # training
     model.learn(
         total_timesteps=train_learning_steps,
         callback=WandbCallbackcustom(num_cpu=num_cpu, use_PPO=True)
     )
+
+    # save model
     if retrain:
         model.save(f"model/save_model/8x8_model_RecurrentPPO_{(epoch+1)*train_learning_steps+retrain_learning_steps}")
         print(f"model/save_model/8x8_model_RecurrentPPO_{(epoch+1)*train_learning_steps+retrain_learning_steps} saved !")

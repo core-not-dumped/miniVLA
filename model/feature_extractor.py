@@ -137,7 +137,7 @@ class SimpleVLAmodel(nn.Module):
         carry_type_c = self.carry_color_emb(carry[:,1])
         carry_emb = torch.cat([carry_type_e, carry_type_c], dim=-1)
         carry_feat = self.carry_embedding(carry_emb).flatten(start_dim=1) # carry
-        
+
         fused = self.fc(torch.cat([dir_feat, carry_feat, film_output], dim=1)) # concat vision, language, direction, carry
         return fused
 
