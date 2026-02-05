@@ -14,6 +14,7 @@ class FiLM(nn.Module):
         gamma, beta = gamma_beta.chunk(2, dim=-1)
         gamma = gamma.unsqueeze(-1).unsqueeze(-1)  # (B, C, 1, 1)
         beta  = beta.unsqueeze(-1).unsqueeze(-1)
+        gamma += 1.0
         return gamma * x + beta
 
 class SimpleVLAmodel(nn.Module):
@@ -102,6 +103,9 @@ class SimpleVLAmodel(nn.Module):
                 nn.init.orthogonal_(param)
             elif "bias" in name:
                 nn.init.zeros_(param)
+
+        nn.init.zeros_(self.film.film.weight)
+        nn.init.zeros_(self.film.film.bias)
 
     def forward(self, image, mission_ids, direction, carry):
         # concat vision, language
