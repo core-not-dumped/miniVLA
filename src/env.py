@@ -7,6 +7,21 @@ import math
 
 from collections import deque
 
+# mokey patch for bug func in minigrid
+import types
+from minigrid.minigrid_env import MiniGridEnv
+def safe_place_agent(self, i=None, j=None, rand_dir=True, max_tries=1000):
+    if i is None:   i = self._rand_int(0, self.num_cols)
+    if j is None:   j = self._rand_int(0, self.num_rows)
+    room = self.room_grid[j][i]
+    for _ in range(max_tries):
+        MiniGridEnv.place_agent(self, room.top, room.size, rand_dir, max_tries=1000)
+        front_cell = self.grid.get(*self.front_pos)
+        if front_cell is None or front_cell.type == "wall":
+            return self.agent_pos
+
+    raise RecursionError("safe_place_agent: failed to place agent")
+
 
 class RandomCurriculumMiniGridEnv(gym.Env):
     def __init__(self, env_ids, max_len=100, frame_num=4, rho=0.3, beta=0.1, scale=0.005, random_epi_num=1000, score_len=100, render_human=True):
@@ -90,7 +105,8 @@ class RandomCurriculumMiniGridEnv(gym.Env):
         if self.render_human:   env = gym.make(self.env_id, render_mode='human', max_episode_steps=self.max_len)
         else:                   env = gym.make(self.env_id, max_episode_steps=self.max_len)
         self.env = env
-
+        self.env.unwrapped.place_agent = types.MethodType(safe_place_agent, self.env.unwrapped)
+    
     def _get_frame_obs(self, obs):
         obs['image'] = np.concatenate(self.image, axis=2)
         obs['direction'] = np.array(self.direction)
@@ -168,8 +184,16 @@ class RandomMiniGridEnv(gym.Env):
         return obs
     
     def reset(self, **kwargs):
-        self._make_new_env()
-        obs, info = self.env.reset(**kwargs)
+        # map을 만들지 못할경우, recursionerror나옴
+        for _ in range(20):
+            try:
+                self._make_new_env()
+                obs, info = self.env.reset(**kwargs)
+                break
+            except RecursionError:
+                continue
+        else:
+            raise RuntimeError("Env reset failed repeatedly")
         self.image = deque([obs['image']] * self.frame_num, maxlen=self.frame_num)
         self.direction = deque([obs['direction']] * self.frame_num, maxlen=self.frame_num)
         self.carry = [0, 0]

@@ -2,6 +2,7 @@ import gymnasium as gym
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 import torch.nn as nn
 import torch
+from gym_minigrid.minigrid import OBJECT_TO_IDX, COLOR_TO_IDX
 
 class FiLM(nn.Module):
     def __init__(self, cond_dim, feat_channels):
@@ -30,8 +31,17 @@ class SimpleVLAmodel(nn.Module):
         self.frames_num = start_channels//3
 
         # Visual encoder (CNN)
+        self.feat_channels = feat_channels
+        self.type_emb  = nn.Embedding(11, 8)
+        self.color_emb = nn.Embedding(6, 5)
+        self.state_emb = nn.Embedding(3, 3)
+        self.frame_image_channels = 8 + 5 + 3
+        self.embedding_conv = nn.Sequential(
+            nn.Conv2d(self.frame_image_channels, feat_channels//self.frames_num, kernel_size=1),
+            nn.ReLU(),
+        )
         self.cnn = nn.Sequential(
-            nn.Conv2d(start_channels, feat_channels, kernel_size=3),
+            nn.Conv2d(feat_channels, feat_channels, kernel_size=3),
             nn.ReLU(),
             nn.Conv2d(feat_channels, feat_channels, kernel_size=3),
             nn.ReLU(),
@@ -63,8 +73,11 @@ class SimpleVLAmodel(nn.Module):
         )
         
         # carry embedding
+        self.carry_type_emb  = nn.Embedding(11, 8)
+        self.carry_color_emb = nn.Embedding(6, 5)
+        self.carry_emb_features = 8 + 5
         self.carry_embedding = nn.Sequential(
-            nn.Linear(2, carry_embed_dim),
+            nn.Linear(self.carry_emb_features, carry_embed_dim),
             nn.ReLU(),
             nn.Linear(carry_embed_dim, carry_embed_dim),
             nn.ReLU()
@@ -92,14 +105,39 @@ class SimpleVLAmodel(nn.Module):
 
     def forward(self, image, mission_ids, direction, carry):
         # concat vision, language
-        vis_feat = self.cnn(image) # vision
-        _, txt_feat = self.gru(self.text_embedding(mission_ids)) # language, (num_layers, B, hidden) -> out
-        txt_feat = txt_feat[-1] # last layer
-        film_output = self.film(vis_feat, txt_feat).flatten(start_dim=1) # concat vision, language
+        
+        # vision
+        B, C, H, W = image.shape
+        image = image.view(B, self.frames_num, 3, H, W)
+        type_idx  = image[:, :, 0].long()  # (B,4,H,W)
+        color_idx = image[:, :, 1].long()
+        state_idx = image[:, :, 2].long()
+        type_e  = self.type_emb(type_idx)   # (B,4,H,W,..)
+        color_e = self.color_emb(color_idx) # (B,4,H,W,..)
+        state_e = self.state_emb(state_idx) # (B,4,H,W,..)
+        image_emb = torch.cat([type_e, color_e, state_e], dim=-1)
+        image_emb = image_emb.permute(0, 1, 4, 2, 3)   # (B,4,self.frame_channels,H,W)
+        image_emb = image_emb.view(B * self.frames_num, self.frame_image_channels, H, W)
+        image_emb = self.embedding_conv(image_emb)
+        image_emb = image_emb.reshape(B, self.feat_channels, H, W)
+        vis_feat = self.cnn(image_emb)
 
-        # concat other features
+        # language, (B, hidden) -> out
+        _, txt_feat = self.gru(self.text_embedding(mission_ids)) # (num_layers, B, hidden)
+        txt_feat = txt_feat[-1] # last layer
+
+        # concat vision, language
+        film_output = self.film(vis_feat, txt_feat).flatten(start_dim=1) 
+
+        # dir features
         dir_feat = self.dir_embedding(direction).flatten(start_dim=1) # direction
-        carry_feat = self.carry_embedding(carry).flatten(start_dim=1) # carry
+        
+        # carry_features
+        carry_type_e = self.carry_type_emb(carry[:,0])
+        carry_type_c = self.carry_color_emb(carry[:,1])
+        carry_emb = torch.cat([carry_type_e, carry_type_c], dim=-1)
+        carry_feat = self.carry_embedding(carry_emb).flatten(start_dim=1) # carry
+        
         fused = self.fc(torch.cat([dir_feat, carry_feat, film_output], dim=1)) # concat vision, language, direction, carry
         return fused
 
@@ -122,18 +160,9 @@ class VLAFeatureExtractor(BaseFeaturesExtractor):
 
     def forward(self, observations) -> torch.Tensor:
         # normalize image
-        image = observations['image']
-        n_frames = image.shape[1]//3
-        channels_type  = [i*3 + 0 for i in range(n_frames)]
-        channels_color = [i*3 + 1 for i in range(n_frames)]
-        channels_state = [i*3 + 2 for i in range(n_frames)]
-        image[:,channels_type] /= 10  # type
-        image[:,channels_color] /= 5  # color
-        image[:,channels_state] /= 2  # state
+        image = observations['image'].long()
         mission = observations["mission"].long()
         direction = observations["direction"].long()
-        carry = observations["carry"]
-        carry[:,0] /= 10
-        carry[:,1] /= 5
+        carry = observations["carry"].long()
         if direction.ndim == 1:   direction = direction.unsqueeze(-1)
         return self.vla(image, mission, direction, carry)
