@@ -6,6 +6,11 @@ import gym_minigrid.minigrid
 # level, lr, batch_size, gamma, retrain 다시보기
 
 env_ids = [
+    "MiniGrid-ObstructedMaze-1Q-v1",
+    "MiniGrid-ObstructedMaze-1Q-v0",
+    "MiniGrid-ObstructedMaze-Full-v0",
+    "MiniGrid-ObstructedMaze-Full-v1",
+
     "BabyAI-GoToRedBallGrey-v0",
     "BabyAI-GoToRedBall-v0",
     "BabyAI-GoToObjS6-v1",
@@ -85,7 +90,7 @@ print(f'{len(env_ids) = }')
 
 retrain = False
 
-lr = 1.5e-4
+lr = 2e-4
 batch_size = 512
 gamma_start = 0.99
 gamma_end = 0.995
