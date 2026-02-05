@@ -14,7 +14,7 @@ class FiLM(nn.Module):
         gamma, beta = gamma_beta.chunk(2, dim=-1)
         gamma = gamma.unsqueeze(-1).unsqueeze(-1)  # (B, C, 1, 1)
         beta  = beta.unsqueeze(-1).unsqueeze(-1)
-        gamma += 1.0
+        gamma = gamma + 1.0
         return gamma * x + beta
 
 class SimpleVLAmodel(nn.Module):
