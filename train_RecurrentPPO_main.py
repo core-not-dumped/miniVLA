@@ -54,19 +54,19 @@ else:
         env=env,
         policy=policy_class,
         policy_kwargs=policy_kwargs,
-        learning_rate=lr,
+        learning_rate=start_lr,
         n_steps=n_steps,
         batch_size=batch_size,
         n_epochs=n_epochs,
         gamma=gamma_start,
         gae_lambda=gae_lambda,
         clip_range=clip_range,
-        ent_coef=ent_coef,
+        ent_coef=start_ent_coef,
         device=device,
         verbose=1,
     )
 
-name = f'RecurrentPPO_{lr}_{batch_size}_{gamma_start}_{features_dim}'
+name = f'RecurrentPPO_{start_lr}_{batch_size}_{gamma_start}_{features_dim}'
 run = wandb.init(project='grid_world', name=name)
 
 for epoch in range(epochs):
@@ -74,13 +74,20 @@ for epoch in range(epochs):
     p = epoch / (epochs - 1)
     model.gamma = gamma_start + (gamma_end - gamma_start) * (p ** 0.5)
     
+    # ent coef scheduling
+    cur_ent_coef = start_ent_coef + (end_ent_coef - start_ent_coef) * p
+    model.ent_coef = cur_ent_coef
+
     # lr scheduling
     if linear_decay_lr:
         def linear_decay_scheduler(progress_remaining):
-            pres_lr = lr * (epochs - epoch - (1 - progress_remaining)) / epochs
+            pres_lr = end_lr + (start_lr - end_lr) * (epochs - epoch - (1 - progress_remaining)) / epochs
             return pres_lr
         model.lr_schedule = linear_decay_scheduler
     
+    print(f'{epoch = } train start')
+    print(f'{model.gamma = }, {model.ent_coef = }')
+
     # training
     model.learn(
         total_timesteps=train_learning_steps,

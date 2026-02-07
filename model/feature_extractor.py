@@ -42,10 +42,11 @@ class SimpleVLAmodel(nn.Module):
             nn.ReLU(),
         )
         self.cnn = nn.Sequential(
-            nn.Conv2d(feat_channels, feat_channels, kernel_size=3),
+            nn.Conv2d(feat_channels, feat_channels, kernel_size=3, padding=1),
             nn.ReLU(),
-            nn.Conv2d(feat_channels, feat_channels, kernel_size=3),
+            nn.Conv2d(feat_channels, feat_channels, kernel_size=3, padding=1),
             nn.ReLU(),
+            nn.AdaptiveAvgPool2d((3, 3)),
         )
 
         # Text encoder (very simple)
@@ -57,6 +58,7 @@ class SimpleVLAmodel(nn.Module):
         self.gru = nn.GRU(
             input_size=text_embed_dim,
             hidden_size=gru_hidden,
+            bidirectional=True,
             batch_first=True
         )
 

@@ -90,21 +90,23 @@ print(f'{len(env_ids) = }')
 
 retrain = False
 
-lr = 2e-4
+start_lr = 1e-4
+end_lr = 3e-5
 batch_size = 512
 gamma_start = 0.99
-gamma_end = 0.995
+gamma_end = 0.99
 
 # PPO
 n_steps = 256
 n_epochs = 2
 gae_lambda = 0.95
 clip_range = 0.2
-ent_coef = 0.01
+start_ent_coef = 0.01
+end_ent_coef = 0.003
 
-linear_decay_lr = True
+linear_decay_lr = True  
 epochs = 200
-test_learning_steps = 45000000
+test_learning_steps = 64000000
 train_learning_steps = 1000000
 retrain_learning_steps = 15000000
 mission_max_length = 32
@@ -114,7 +116,7 @@ recurrent_frame_num = 4
 score_len = 100
 
 beta = 0.3
-scale = 0.003
+scale = 0.002
 random_epi_num = 0
 
 tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")

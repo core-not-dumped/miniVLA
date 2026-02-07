@@ -22,6 +22,8 @@ class MissionToArrayWrapper(gym.ObservationWrapper):
         )
         self.max_length = max_length
 
+        print(self.action_space)
+
     def observation(self, obs):
         obs = obs.copy()
         mission_str = obs['mission']
