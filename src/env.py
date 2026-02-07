@@ -60,9 +60,11 @@ class RandomCurriculumMiniGridEnv(gym.Env):
         if self.global_episode < self.random_epi_num:
             return np.random.choice(self.L_seen)
 
-        # PS(l|S): score 기반 낮은 점수
+        # PS(l|S): score 기반 낮은 점수, 가우시안 커널 이용해서 score 계산
         s_arr = np.array([np.mean(s) for s in self.S])
-        Goldilocks = 1.0 - np.abs(2 * s_arr - 1.0)
+        s_mean = s_arr.mean()
+        sigma = 0.2
+        Goldilocks = np.exp(-((s_arr - s_mean) ** 2) / (2 * sigma ** 2))
         sorted_indices = np.argsort(-Goldilocks)
         ranks = np.empty_like(sorted_indices)
         ranks[sorted_indices] = np.arange(1, len(Goldilocks)+1)
