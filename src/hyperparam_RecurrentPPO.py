@@ -85,7 +85,7 @@ env_ids = [
     "BabyAI-BossLevel-v0",
     "BabyAI-BossLevelNoUnlock-v0",
 ]
-test_spe_env_id = ["BabyAI-BossLevel-v0"]
+test_spe_env_id = env_ids
 print(f'{len(env_ids) = }')
 
 retrain = False
@@ -106,7 +106,7 @@ end_ent_coef = 0.003
 
 linear_decay_lr = True  
 epochs = 200
-test_learning_steps = 26000000
+test_learning_steps = 66000000
 train_learning_steps = 1000000
 retrain_learning_steps = 15000000
 mission_max_length = 32
@@ -114,6 +114,7 @@ features_dim = 512
 max_len = 200
 recurrent_frame_num = 4
 score_len = 100
+pickup_toggle_minus_reward = -0.005
 
 beta = 0.3
 scale = 0.002

@@ -24,7 +24,18 @@ def safe_place_agent(self, i=None, j=None, rand_dir=True, max_tries=1000):
 
 
 class RandomCurriculumMiniGridEnv(gym.Env):
-    def __init__(self, env_ids, max_len=100, frame_num=4, rho=0.3, beta=0.1, scale=0.005, random_epi_num=1000, score_len=100, render_human=True):
+    def __init__(self,
+            env_ids,
+            max_len=100,
+            frame_num=4,
+            rho=0.3,
+            beta=0.1,
+            scale=0.005,
+            random_epi_num=1000,
+            score_len=100,
+            pickup_toggle_minus_reward=-0.005,
+            render_human=True
+        ):
         super().__init__()
         self.env_ids = env_ids
         self.n_envs = len(env_ids)
@@ -35,6 +46,7 @@ class RandomCurriculumMiniGridEnv(gym.Env):
         self.scale = scale
         self.random_epi_num = random_epi_num
         self.score_len = score_len
+        self.pickup_toggle_minus_reward = pickup_toggle_minus_reward
 
         # PLR tracking
         self.rho = rho              # PLR replay weight
@@ -62,7 +74,8 @@ class RandomCurriculumMiniGridEnv(gym.Env):
 
         # PS(l|S): score 기반 낮은 점수, 가우시안 커널 이용해서 score 계산
         s_arr = np.array([np.mean(s) for s in self.S])
-        s_mean = s_arr.mean()
+        low_09 = s_arr[s_arr <= 0.9]
+        s_mean = min(low_09.mean() if len(low_09) > 0 else 0.0, 0.5) # 최대 0.5로 잡음
         sigma = 0.2
         Goldilocks = np.exp(-((s_arr - s_mean) ** 2) / (2 * sigma ** 2))
         sorted_indices = np.argsort(-Goldilocks)
@@ -153,6 +166,10 @@ class RandomCurriculumMiniGridEnv(gym.Env):
         self.counts[tup] = new_count
         bonus = 1 / math.sqrt(new_count)
         reward += bonus * self.scale
+
+        # little minus loss for toggle, pickup
+        if (not terminated) and (action == 3 or action == 5):
+            reward += self.pickup_toggle_minus_reward
 
         return self._get_frame_obs(obs), reward, terminated, truncated, info
 
