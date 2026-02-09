@@ -30,6 +30,7 @@ def make_custom_env():
         random_epi_num=random_epi_num,
         score_len=score_len,
         pickup_toggle_minus_reward=pickup_toggle_minus_reward,
+        step_minus_reward=step_minus_reward,
         render_human=False)
     env = MissionToArrayWrapper(env, tokenizer, mission_max_length, recurrent_frame_num*3)
     return env

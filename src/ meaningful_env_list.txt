@@ -95,7 +95,7 @@
 
 "BabyAI-OpenDoor-v0",
 "BabyAI-OpenTwoDoors-v0",
-"MiniGrid-RedBlueDoors-8x8-v0",
+"BabyAI-OpenRedBlueDoors-v0",
 "BabyAI-OpenDoorsOrderN2-v0",
 "BabyAI-OpenDoorsOrderN4-v0",
 

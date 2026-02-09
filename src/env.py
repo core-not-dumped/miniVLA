@@ -30,10 +30,11 @@ class RandomCurriculumMiniGridEnv(gym.Env):
             frame_num=4,
             rho=0.3,
             beta=0.1,
-            scale=0.005,
+            scale=0.003,
             random_epi_num=1000,
             score_len=100,
             pickup_toggle_minus_reward=-0.005,
+            step_minus_reward=-0.002,
             render_human=True
         ):
         super().__init__()
@@ -47,6 +48,7 @@ class RandomCurriculumMiniGridEnv(gym.Env):
         self.random_epi_num = random_epi_num
         self.score_len = score_len
         self.pickup_toggle_minus_reward = pickup_toggle_minus_reward
+        self.step_minus_reward = step_minus_reward
 
         # PLR tracking
         self.rho = rho              # PLR replay weight
@@ -103,7 +105,8 @@ class RandomCurriculumMiniGridEnv(gym.Env):
 
         if self.global_episode % 300 == 0:
             for s, env_name, prob in zip(s_arr, self.L_seen, probs):
-                print(f'env: {env_name}, {s = }, {prob = }')
+                print(f'env: {env_name}, s = {float(s):.1%}, p = {float(prob):.2%}')
+            print(f'success_rate = {float(s_arr.mean()):.2%}')
         return li
 
     def _make_new_env(self, li=None):
@@ -167,9 +170,14 @@ class RandomCurriculumMiniGridEnv(gym.Env):
         bonus = 1 / math.sqrt(new_count)
         reward += bonus * self.scale
 
-        # little minus loss for toggle, pickup
-        if (not terminated) and (action == 3 or action == 5):
-            reward += self.pickup_toggle_minus_reward
+        # minus reward, every step
+        if (not terminated):
+            if  action == 3 or action == 5:
+                # little minus loss for toggle, pickup
+                reward += self.pickup_toggle_minus_reward
+            else:
+                # step minus reward
+                reward += self.step_minus_reward
 
         return self._get_frame_obs(obs), reward, terminated, truncated, info
 
@@ -195,6 +203,7 @@ class RandomMiniGridEnv(gym.Env):
         if self.render_human:   env = gym.make(self.env_id, render_mode='human', max_episode_steps=self.max_len)
         else:                   env = gym.make(self.env_id, max_episode_steps=self.max_len)
         self.env = env
+        self.env.unwrapped.place_agent = types.MethodType(safe_place_agent, self.env.unwrapped)
 
     def _get_frame_obs(self, obs):
         obs['image'] = np.concatenate(self.image, axis=2)
