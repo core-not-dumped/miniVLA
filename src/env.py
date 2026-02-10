@@ -74,17 +74,13 @@ class RandomCurriculumMiniGridEnv(gym.Env):
         if self.global_episode < self.random_epi_num:
             return np.random.choice(self.L_seen)
 
-        # PS(l|S): score 기반 낮은 점수, 가우시안 커널 이용해서 score 계산
+        # PS(l|S): score 기반 낮은 점수, 가우시안 커널(간략화해서 distance, rank) 이용해서 score 계산
         s_arr = np.array([np.mean(s) for s in self.S])
         low_09 = s_arr[s_arr <= 0.9]
-        s_mean = min(low_09.mean() if len(low_09) > 0 else 0.0, 0.5) # 최대 0.5로 잡음
-        sigma = 0.2
-        Goldilocks = np.exp(-((s_arr - s_mean) ** 2) / (2 * sigma ** 2))
-        sorted_indices = np.argsort(-Goldilocks)
-        ranks = np.empty_like(sorted_indices)
-        ranks[sorted_indices] = np.arange(1, len(Goldilocks)+1)
-        h = 1.0 / ranks
-        Ps = h ** self.beta # beta
+        s_mean = min(low_09.mean() if len(low_09) > 0 else 0.5, 0.5) # 최대 0.5로 잡음
+        distance = (s_arr - s_mean) ** 2
+        ranks = np.argsort(np.argsort(distance)) + 1 # 자기 자신의 랭크 값
+        Ps = (1.0 / ranks) ** self.beta
         Ps /= Ps.sum()
 
         # 70퍼 이상 성공한 경우 확률 더 낮춤
@@ -248,3 +244,7 @@ class RandomMiniGridEnv(gym.Env):
 
     def render(self, mode='human'):
         return self.env.render(mode=mode)
+    
+# sencing data를 이용해서 어떻게 사람 대신 수행하는 ai를 만들 수 있을지 이 프로젝트와 연결하여 고민
+# VLA같은 경우 V가 sencing data가 되고 L이 사람이 명령을 내리고 A가 AI가 action을 자동으로 수행하게 된다.
+# 

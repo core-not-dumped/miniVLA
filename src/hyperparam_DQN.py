@@ -106,8 +106,12 @@ max_len = 100
 DQN_frame_num = 4
 score_len = 100
 
-beta = 0.3
+recurrent_frame_num = 4
+pickup_toggle_minus_reward = -0.005
+step_minus_reward = -0.002
 scale = 0.003
+
+beta = 0.3
 random_epi_num = 1000
 
 tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")

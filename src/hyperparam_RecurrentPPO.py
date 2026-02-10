@@ -101,13 +101,13 @@ n_steps = 256
 n_epochs = 2
 gae_lambda = 0.95
 clip_range = 0.2
-start_ent_coef = 0.015
-end_ent_coef = 0.003
+start_ent_coef = 0.01
+end_ent_coef = 0.001
 
 linear_decay_lr = True  
 epochs = 200
 spe_test_episodes = 2000
-test_learning_steps = 70000000
+test_learning_steps = 20000000
 train_learning_steps = 1000000
 retrain_learning_steps = 15000000
 mission_max_length = 32
@@ -115,7 +115,7 @@ features_dim = 512
 max_len = 200
 recurrent_frame_num = 4
 score_len = 100
-pickup_toggle_minus_reward = -0.005
+pickup_toggle_minus_reward = -0.003
 step_minus_reward = -0.002
 scale = 0.003
 

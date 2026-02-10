@@ -21,8 +21,18 @@ def print_override(*args, **kwargs):
 builtins.print = print_override
 
 def make_custom_env():
-    env = RandomCurriculumMiniGridEnv(env_ids=env_ids, max_len=max_len, frame_num=DQN_frame_num, beta=beta, scale=scale, random_epi_num=random_epi_num, score_len=score_len, render_human=False)
-    env = MissionToArrayWrapper(env, tokenizer, mission_max_length, DQN_frame_num*3)
+    env = RandomCurriculumMiniGridEnv(
+        env_ids=env_ids,
+        max_len=max_len,
+        frame_num=recurrent_frame_num,
+        beta=beta,
+        scale=scale,
+        random_epi_num=random_epi_num,
+        score_len=score_len,
+        pickup_toggle_minus_reward=pickup_toggle_minus_reward,
+        step_minus_reward=step_minus_reward,
+        render_human=False)
+    env = MissionToArrayWrapper(env, tokenizer, mission_max_length, recurrent_frame_num*3)
     return env
 
 env = make_vec_env(make_custom_env, n_envs=num_cpu)
