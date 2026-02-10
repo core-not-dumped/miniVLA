@@ -27,7 +27,7 @@ def print_override(*args, **kwargs):
 builtins.print = print_override
 
 def make_custom_env():
-    env = RandomMiniGridEnv(env_ids=test_spe_env_id, max_len=200, frame_num=recurrent_frame_num, scale=scale, render_human=False)
+    env = RandomMiniGridEnv(env_ids=test_spe_env_id, max_len=200, frame_num=recurrent_frame_num, scale=0, render_human=False)
     env = MissionToArrayWrapper(env, tokenizer, mission_max_length, recurrent_frame_num*3)
     return env
 env = make_vec_env(make_custom_env, n_envs=num_cpu)
@@ -51,6 +51,7 @@ for i, model_name in enumerate(model_names):
 
     total_reward = 0
     total_episode = 0
+    total_success = 0
     states, episode_starts = None, np.ones((num_cpu,), dtype=bool)
     obs = env.reset()
     with tqdm(total=spe_test_episodes) as pbar:
