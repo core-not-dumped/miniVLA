@@ -82,7 +82,7 @@ xticks = np.arange(5, len(values) + 1, 5)
 plt.xticks(xticks, [f"{i}M" for i in xticks])
 
 plt.xlabel("Steps")
-plt.ylabel("Value")
+plt.ylabel("Success Rate")
 plt.title("Training Curve")
 
 plt.grid(True)
