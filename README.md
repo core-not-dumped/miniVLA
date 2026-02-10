@@ -41,9 +41,9 @@ python -m test.test_RecurrentPPO_spe_env.py
 ```
 
 ## 📈 Training Curve
-
+This graph shows the change in success rate during training.
 <div align="center">
-  <img src="assets/image/training_curve.png" width="80%" alt="Training Curve" />
+  <img src="assets/image/evaluation.png" width="80%" alt="Training Curve" />
 </div>
 
 
