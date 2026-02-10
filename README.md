@@ -28,16 +28,16 @@ pip install -r requirements.txt
 
 ### 4. Train with Recurrent PPO
 ```bash
-python -m train.train_RecurrentPPO_main.py
+python -m train.train_RecurrentPPO_main
 ```
 
 ### 5. Evaluation
 ```bash
-python -m test.test_RecurrentPPO_main.py
+python -m test.test_RecurrentPPO_main
 ```
 or
 ```bash
-python -m test.test_RecurrentPPO_spe_env.py
+python -m test.test_RecurrentPPO_spe_env
 ```
 
 ## 📈 Training Curve

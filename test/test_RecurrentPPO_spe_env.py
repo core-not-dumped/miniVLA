@@ -41,6 +41,7 @@ model_names = [
 
 total_rewards = []
 total_episodes = []
+total_successes = []
 for i, model_name in enumerate(model_names):
     if not os.path.exists(model_name):
         print(f"{model_name} 모델이 존재하지 않습니다.")
@@ -61,16 +62,19 @@ for i, model_name in enumerate(model_names):
             episode_starts[:] = dones
             total_episode += np.sum(dones)
             total_reward += reward.sum()
+            total_success += np.sum((reward > 0) & (dones > 0))
             pbar.set_postfix(value=f"{total_episode:.4f}")
             pbar.update(np.sum(dones))
             if total_episode >= spe_test_episodes:    break
     with open('Recurrent_PPO_spe_test.txt', 'a') as f:
         f.write(f'{i+1}M epi_rew_mean = {total_reward / total_episode}\n')
         print(f'epi_rew_mean = {total_reward / total_episode}')
+        print(f'success_rate = {total_success / total_episode}')
     total_episodes.append(total_episode)
     total_rewards.append(total_reward)
+    total_successes.append(total_success)
 
-values = np.array(total_rewards)/np.array(total_episodes)
+values = np.array(total_successes)/np.array(total_episodes)
 
 # x축: 1M, 2M, 3M, ...
 x = np.arange(1, len(values) + 1)
@@ -89,5 +93,5 @@ plt.title("Training Curve")
 plt.grid(True)
 plt.tight_layout()
 
-plt.savefig("training_curve.png", dpi=150)
+plt.savefig("./test/training_curve.png", dpi=150)
 plt.close()
