@@ -1,4 +1,4 @@
-# 🤖 Qwen TextWorld ReAct Agent 🤖
+# 🤖 miniVLA 🤖
 
 Minimal **Vision-Language-Action (VLA)** agent on gridworld using **Recurrent PPO**.
 
