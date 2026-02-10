@@ -1,6 +1,6 @@
 # 🤖 miniVLA 🤖
 
-Minimal **Vision-Language-Action (VLA)** agent on gridworld using **Recurrent PPO**.
+**Vision-Language-Action (VLA)** agent on gridworld using **Recurrent PPO**.
 
 <div align="center">
   <img src="assets/video/unlock_to_unlock.gif" width="40%" />
