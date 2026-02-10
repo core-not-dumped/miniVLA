@@ -2,6 +2,11 @@
 
 Minimal **Vision-Language-Action (VLA)** agent on gridworld using **Recurrent PPO**.
 
+<div align="center">
+  <video src="assets/video/unlock_to_unlock.mp4" controls width="40%"></video>
+  <video src="assets/video/boss_level.mp4" controls width="40%"></video>
+</div>
+
 ## Getting Started
 
 ### 1. Clone the repository
