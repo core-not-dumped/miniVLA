@@ -41,6 +41,7 @@ python -m test.test_RecurrentPPO_spe_env.py
 ```
 
 ## 📈 Training Curve
+
 <div align="center">
   <img src="assets/image/training_curve.png" width="80%" alt="Training Curve" />
 </div>
